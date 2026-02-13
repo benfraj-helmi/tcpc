@@ -1,0 +1,58 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const int MAXN = 2e5 + 5;
+const int HASH_COUNT = 6;
+
+long long a[MAXN], b[MAXN];
+long long hash_a[HASH_COUNT][MAXN], hash_b[HASH_COUNT][MAXN];
+long long random_val[HASH_COUNT][MAXN]; // valeur random pour chaque élément
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n, m, q;
+    cin >> n >> m >> q; // taille de a et b, nombre de requêtes
+    for(int i=1;i<=n;i++) cin >> a[i];
+    for(int i=1;i<=m;i++) cin >> b[i];
+
+    // Générer des valeurs aléatoires pour hashing
+    mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+    for(int h=0;h<HASH_COUNT;h++)
+        for(int i=1;i<=max(n,m);i++)
+            random_val[h][i] = rng() % 1000000000000000LL + 1; // grand nombre
+
+    // Calculer les prefix sums hash pour a
+    for(int h=0;h<HASH_COUNT;h++) {
+        hash_a[h][0] = 0;
+        for(int i=1;i<=n;i++)
+            hash_a[h][i] = hash_a[h][i-1] + random_val[h][a[i]];
+    }
+
+    // Calculer les prefix sums hash pour b
+    for(int h=0;h<HASH_COUNT;h++) {
+        hash_b[h][0] = 0;
+        for(int i=1;i<=m;i++)
+            hash_b[h][i] = hash_b[h][i-1] + random_val[h][b[i]];
+    }
+
+    // Traiter les requêtes
+    while(q--) {
+        int l, r;
+        cin >> l >> r; // 1-indexed
+
+        bool ok = true;
+        for(int h=0;h<HASH_COUNT;h++) {
+            long long ha = hash_a[h][r] - hash_a[h][l-1];
+            long long hb = hash_b[h][r] - hash_b[h][l-1];
+            if(ha != hb) {
+                ok = false;
+                break;
+            }
+        }
+        cout << (ok ? "YES\n" : "NO\n");
+    }
+
+    return 0;
+}

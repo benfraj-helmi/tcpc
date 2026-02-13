@@ -1,0 +1,21 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    vector<pair<int,int>> a = {
+        {2, 5},
+        {1, 3},
+        {2, 1},
+        {1, 7},
+        {3, 2}
+    };
+
+    sort(a.begin(), a.end(), [](pair<int,int> x, pair<int,int> y) {
+        if (x.first != y.first)
+            return x.first < y.first;   // first croissant
+        return x.second > y.second;     // second décroissant
+    });
+
+    for (auto p : a)
+        cout << p.first << " " << p.second << "\n";
+}

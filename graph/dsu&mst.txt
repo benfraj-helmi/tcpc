@@ -1,0 +1,94 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct DSU {
+    vector<int> parent, sz;
+    stack<pair<int,int>> history; // pour rollback
+
+    DSU(int n) {
+        parent.resize(n+1);
+        sz.resize(n+1,1);
+        for(int i = 1; i <= n; i++) parent[i] = i;
+    }
+
+    int find(int x) {
+        while(x != parent[x]) x = parent[x];
+        return x;
+    }
+
+    bool merge(int a, int b) {
+        a = find(a);
+        b = find(b);
+        if(a == b) return false;
+        if(sz[a] < sz[b]) swap(a,b);
+        // Sauvegarder l'état pour rollback
+        history.push({b, sz[b]});
+        parent[b] = a;
+        sz[a] += sz[b];
+        return true;
+    }
+
+    void rollback() {
+        if(history.empty()) return;
+        auto [b, old_size] = history.top(); history.pop();
+        int a = parent[b];
+        sz[a] -= old_size;
+        parent[b] = b;
+    }
+
+    int size_of_component(int x) {
+        return sz[find(x)];
+    }
+
+    vector<vector<int>> get_components(int n) {
+        unordered_map<int, vector<int>> comp;
+        for(int i = 1; i <= n; i++)
+            comp[find(i)].push_back(i);
+        vector<vector<int>> res;
+        for(auto &p : comp) res.push_back(p.second);
+        return res;
+    }
+};
+
+// Exemple d'utilisation pour un MST avec Kruskal
+struct Edge {
+    int u,v,w;
+    bool operator<(const Edge &other) const { return w < other.w; }
+};
+
+long long kruskal(int n, vector<Edge> &edges, vector<Edge> &mst_edges) {
+    sort(edges.begin(), edges.end());
+    DSU dsu(n);
+    long long cost = 0;
+    for(auto &e : edges) {
+        if(dsu.merge(e.u, e.v)) {
+            cost += e.w;
+            mst_edges.push_back(e);
+        }
+    }
+    return cost;
+}
+
+int main() {
+    int n,m;
+    cin >> n >> m;
+    vector<Edge> edges(m), mst_edges;
+    for(int i = 0; i < m; i++) {
+        cin >> edges[i].u >> edges[i].v >> edges[i].w;
+    }
+
+    long long mst_cost = kruskal(n, edges, mst_edges);
+    cout << "Cost of MST: " << mst_cost << "\n";
+
+    DSU dsu(n);
+    for(auto &e : mst_edges) dsu.merge(e.u, e.v);
+
+    auto comps = dsu.get_components(n);
+    cout << "Components after MST:\n";
+    for(auto &c : comps) {
+        for(int x : c) cout << x << " ";
+        cout << "\n";
+    }
+
+    return 0;
+}

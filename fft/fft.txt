@@ -1,0 +1,252 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+/* =========================
+   COMPLEX FFT (double)
+   ========================= */
+struct Complex {
+    double re, im;
+    Complex(double r=0,double i=0): re(r), im(i) {}
+    Complex operator+(const Complex &o) const { return Complex(re+o.re, im+o.im); }
+    Complex operator-(const Complex &o) const { return Complex(re-o.re, im-o.im); }
+    Complex operator*(const Complex &o) const { return Complex(re*o.re - im*o.im, re*o.im + im*o.re); }
+    void operator/=(double d){ re/=d; im/=d; }
+};
+const double PI = acos(-1.0);
+void fft(vector<Complex> &a,bool invert){
+    int n=a.size();
+    for(int i=1,j=0;i<n;i++){
+        int bit=n>>1;
+        for(; j&bit; bit>>=1) j^=bit;
+        j^=bit;
+        if(i<j) swap(a[i],a[j]);
+    }
+    for(int len=2; len<=n; len<<=1){
+        double ang=2*PI/len*(invert?-1:1);
+        Complex wlen(cos(ang),sin(ang));
+        for(int i=0;i<n;i+=len){
+            Complex w(1,0);
+            for(int j=0;j<len/2;j++){
+                Complex u=a[i+j];
+                Complex v=a[i+j+len/2]*w;
+                a[i+j]=u+v;
+                a[i+j+len/2]=u-v;
+                w=w*wlen;
+            }
+        }
+    }
+    if(invert) for(auto &x:a) x/=n;
+}
+// Convolution pour vecteurs long long
+vector<long long> convolution(const vector<long long> &a,const vector<long long> &b){
+    int n=1;
+    while(n<(int)(a.size()+b.size()-1)) n<<=1;
+    vector<Complex> fa(n);
+    for(size_t i=0;i<a.size();i++) fa[i].re=a[i];
+    for(size_t i=0;i<b.size();i++) fa[i].im=b[i];
+    fft(fa,false);
+    vector<Complex> fb(n);
+    for(int i=0;i<n;i++){
+        int j=(n-i)&(n-1);
+        Complex A=(fa[i]+Complex(fa[j].re,-fa[j].im))*Complex(0.5,0);
+        Complex B=(fa[i]-Complex(fa[j].re,-fa[j].im))*Complex(0,-0.5);
+        fb[i]=A*B;
+    }
+    fft(fb,true);
+    vector<long long> res(a.size()+b.size()-1);
+    for(size_t i=0;i<res.size();i++) res[i]=llround(fb[i].re);
+    return res;
+}
+
+/* =========================
+   NTT (modulaire exacte)
+   ========================= */
+namespace NTT {
+    const int MOD=998244353,G=3;
+    long long addmod(long long a,long long b){ a+=b; if(a>=MOD) a-=MOD; return a; }
+    long long submod(long long a,long long b){ a-=b; if(a<0) a+=MOD; return a; }
+    long long modpow(long long a,long long e){
+        long long r=1;
+        while(e){ if(e&1) r=r*a%MOD; a=a*a%MOD; e>>=1; }
+        return r;
+    }
+    void ntt(vector<long long> &a,bool invert){
+        int n=a.size();
+        for(int i=1,j=0;i<n;i++){
+            int bit=n>>1;
+            for(; j&bit; bit>>=1) j^=bit;
+            j^=bit;
+            if(i<j) swap(a[i],a[j]);
+        }
+        for(int len=2;len<=n;len<<=1){
+            long long wlen=modpow(G,(MOD-1)/len);
+            if(invert) wlen=modpow(wlen,MOD-2);
+            for(int i=0;i<n;i+=len){
+                long long w=1;
+                for(int j=0;j<len/2;j++){
+                    long long u=a[i+j];
+                    long long v=a[i+j+len/2]*w%MOD;
+                    a[i+j]=addmod(u,v);
+                    a[i+j+len/2]=submod(u,v);
+                    w=w*wlen%MOD;
+                }
+            }
+        }
+        if(invert){
+            long long inv_n=modpow(n,MOD-2);
+            for(long long &x:a) x=x*inv_n%MOD;
+        }
+    }
+    vector<long long> convolution_mod(const vector<long long> &a,const vector<long long> &b){
+        int n=1;
+        while(n<(int)(a.size()+b.size()-1)) n<<=1;
+        vector<long long> fa(n,0),fb(n,0);
+        for(size_t i=0;i<a.size();i++) fa[i]=(a[i]%MOD+MOD)%MOD;
+        for(size_t i=0;i<b.size();i++) fb[i]=(b[i]%MOD+MOD)%MOD;
+        ntt(fa,false); ntt(fb,false);
+        for(int i=0;i<n;i++) fa[i]=fa[i]*fb[i]%MOD;
+        ntt(fa,true);
+        fa.resize(a.size()+b.size()-1);
+        return fa;
+    }
+}
+
+/* =========================
+   Problèmes types
+========================= */
+
+// 1) Multiplier deux polynômes
+vector<long long> multiply_polynomials(const vector<long long> &A,const vector<long long> &B){
+    return convolution(A,B);
+}
+
+// 2) Puissance d’un polynôme
+vector<long long> pow_polynomial(vector<long long> base,long long p,int maxdeg=0){
+    vector<long long> res={1};
+    while(p>0){
+        if(p&1){
+            res=convolution(res,base);
+            if(maxdeg>0 && (int)res.size()>maxdeg+1) res.resize(maxdeg+1);
+        }
+        p>>=1;
+        if(p){
+            base=convolution(base,base);
+            if(maxdeg>0 && (int)base.size()>maxdeg+1) base.resize(maxdeg+1);
+        }
+    }
+    return res;
+}
+
+// 3) Multiplier grands entiers
+string multiply_bigint(const string &a,const string &b){
+    int base=1000,width=3;
+    vector<long long> A,B;
+    for(int i=(int)a.size();i>0;i-=width){
+        int x=0; int l=max(0,i-width);
+        for(int j=l;j<i;j++) x=x*10+(a[j]-'0');
+        A.push_back(x);
+    }
+    for(int i=(int)b.size();i>0;i-=width){
+        int x=0; int l=max(0,i-width);
+        for(int j=l;j<i;j++) x=x*10+(b[j]-'0');
+        B.push_back(x);
+    }
+    vector<long long> C=convolution(A,B);
+    long long carry=0;
+    for(size_t i=0;i<C.size();i++){
+        long long cur=C[i]+carry;
+        C[i]=cur%base;
+        carry=cur/base;
+    }
+    while(carry){ C.push_back(carry%base); carry/=base; }
+    while(C.size()>1 && C.back()==0) C.pop_back();
+    stringstream ss; ss<<C.back();
+    char buf[10];
+    for(int i=(int)C.size()-2;i>=0;i--){ sprintf(buf,"%03lld",C[i]); ss<<buf; }
+    return ss.str();
+}
+
+// 4) Toutes les sommes de paires
+vector<long long> all_pairs_sums(const vector<long long> &a,int maxv){
+    vector<long long> freq(maxv+1,0);
+    for(long long x:a) freq[x]++;
+    return convolution(freq,freq);
+}
+
+// 5) Toutes les sommes de sous-tableaux
+vector<long long> all_subarray_sums_counts(const vector<long long> &a){
+    long long sum=0; for(long long x:a) sum+=x;
+    int S=(int)sum;
+    vector<long long> freq(S+2,0); long long cur=0; freq[0]++;
+    for(long long x:a){ cur+=x; freq[cur]++; }
+    vector<long long> rev=freq; reverse(rev.begin(),rev.end());
+    vector<long long> conv=convolution(freq,rev);
+    vector<long long> ans(S+1);
+    int offset=(int)rev.size()-1;
+    for(int s=0;s<=S;s++) ans[s]=conv[s+offset];
+    return ans;
+}
+
+// 6) Toutes les sommes de sous-ensembles
+vector<long long> multiply_polynomials_sparse(const vector<pair<int,long long>> &polys){
+    function<vector<long long>(int,int)> solve=[&](int l,int r)->vector<long long>{
+        if(l==r){ int e=polys[l].first; long long v=polys[l].second; vector<long long> res(e+1,0); res[0]=1; res[e]=v; return res;}
+        int m=(l+r)/2;
+        vector<long long> L=solve(l,m),R=solve(m+1,r);
+        return convolution(L,R);
+    };
+    if(polys.empty()) return {1};
+    return solve(0,(int)polys.size()-1);
+}
+vector<long long> all_subsets_sums(const vector<long long> &a){
+    vector<pair<int,long long>> polys;
+    for(long long x:a) polys.push_back({(int)x,1});
+    return multiply_polynomials_sparse(polys);
+}
+
+/* =========================
+   MAIN – tests explicatifs
+========================= */
+int main(){
+    ios::sync_with_stdio(false); cin.tie(nullptr);
+
+    cout<<"=== TESTS FFT/NTT & POLYNOMIALS ===\n";
+
+    // 1) Multiplier deux polynômes
+    vector<long long> A={1,2,3}; // 1 + 2x + 3x^2
+    vector<long long> B={4,5};   // 4 + 5x
+    vector<long long> C=multiply_polynomials(A,B);
+    cout<<"Poly multiply: ";
+    for(auto x:C) cout<<x<<" "; cout<<"\n"; // attendu: 4 13 22 15
+
+    // 2) Puissance polynôme (1+x)^5
+    vector<long long> P={1,1};
+    auto Q=pow_polynomial(P,5);
+    cout<<"(1+x)^5 coeffs: ";
+    for(auto x:Q) cout<<x<<" "; cout<<"\n"; // attendu: 1 5 10 10 5 1
+
+    // 3) Multiplication grands entiers
+    string a="12345678901234567890",b="98765432109876543210";
+    cout<<"Bigint mul: "<<multiply_bigint(a,b)<<"\n";
+
+    // 4) Toutes les sommes de paires
+    vector<long long> arr={1,2,2,3};
+    int maxv=3;
+    auto pairs=all_pairs_sums(arr,maxv);
+    cout<<"All pairs sums counts:\n";
+    for(size_t s=0;s<pairs.size();s++) if(pairs[s]) cout<<"sum="<<s<<" cnt="<<pairs[s]<<"\n";
+
+    // 5) Sous-tableaux
+    vector<long long> arr2={1,2,1};
+    auto subs=all_subarray_sums_counts(arr2);
+    cout<<"Subarray sums counts:\n";
+    for(size_t s=0;s<subs.size();s++) if(subs[s]) cout<<"sum="<<s<<" cnt="<<subs[s]<<"\n";
+
+    // 6) Sous-ensembles
+    vector<long long> arr3={1,2,2};
+    auto subsets=all_subsets_sums(arr3);
+    cout<<"Subset sums counts:\n";
+    for(size_t s=0;s<subsets.size();s++) if(subsets[s]) cout<<"sum="<<s<<" cnt="<<subsets[s]<<"\n";
+
+    return 0;
+}

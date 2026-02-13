@@ -1,0 +1,180 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const double PI = acos(-1.0);
+const double EPS = 1e-9;
+
+// ===== POINT =====
+struct Point {
+    double x, y;
+    Point() : x(0), y(0) {}
+    Point(double _x, double _y) : x(_x), y(_y) {}
+
+    Point operator+(const Point &p) const { return Point(x+p.x, y+p.y); }
+    Point operator-(const Point &p) const { return Point(x-p.x, y-p.y); }
+    Point operator*(double k) const { return Point(x*k, y*k); }
+    Point operator/(double k) const { return Point(x/k, y/k); }
+
+    double dot(const Point &p) const { return x*p.x + y*p.y; }
+    double cross(const Point &p) const { return x*p.y - y*p.x; }
+    double norm2() const { return x*x + y*y; }
+    double norm() const { return sqrt(norm2()); }
+};
+
+// Distance between two points
+double distance(const Point &a, const Point &b) {
+    return (a-b).norm();
+}
+
+// Angle ABC with center B
+double angleABC(const Point &A, const Point &B, const Point &C) {
+    Point BA = A-B;
+    Point BC = C-B;
+    double ang = acos( max(-1.0, min(1.0, BA.dot(BC)/(BA.norm()*BC.norm()))) );
+    return ang; // radians
+}
+
+// Check if point P is inside the angle ∠ABC (center B)
+bool pointInAngle(const Point &A, const Point &B, const Point &C, const Point &P) {
+    Point BA = A-B;
+    Point BC = C-B;
+    Point BP = P-B;
+    double cross1 = BA.cross(BP);
+    double cross2 = BP.cross(BC);
+    return (cross1 >= -EPS && cross2 >= -EPS);
+}
+
+// Rotate point P around center C by theta radians
+Point rotate(const Point &P, const Point &C, double theta) {
+    Point v = P - C;
+    double cosT = cos(theta), sinT = sin(theta);
+    return Point(v.x*cosT - v.y*sinT + C.x, v.x*sinT + v.y*cosT + C.y);
+}
+
+// Translate point P by vector T
+Point translate(const Point &P, const Point &T) {
+    return P + T;
+}
+
+// ===== SURFACES & PERIMETERS =====
+double rectangleArea(double w, double h) { return w*h; }
+double rectanglePerimeter(double w, double h) { return 2*(w+h); }
+double squareArea(double a) { return a*a; }
+double squarePerimeter(double a) { return 4*a; }
+double triangleAreaBH(double base, double height) { return 0.5*base*height; }
+double triangleAreaHeron(double a, double b, double c) { 
+    double s=(a+b+c)/2.0;
+    return sqrt(s*(s-a)*(s-b)*(s-c));
+}
+double trianglePerimeter(double a, double b, double c) { return a+b+c; }
+double triangleAreaPoints(Point A, Point B, Point C) { return fabs((B-A).cross(C-A))/2.0; }
+double circleArea(double r) { return PI*r*r; }
+double circlePerimeter(double r) { return 2*PI*r; }
+double polygonArea(vector<Point> &p) {
+    int n = p.size();
+    double area=0;
+    for(int i=0;i<n;i++) {
+        int j=(i+1)%n;
+        area += p[i].cross(p[j]);
+    }
+    return fabs(area)/2.0;
+}
+
+// ===== LINES =====
+struct Line { Point a,b; Line(){} Line(Point _a, Point _b):a(_a),b(_b){} };
+Point dir(Line l) { return l.b-l.a; }
+bool parallel(Line l1, Line l2) { return fabs(dir(l1).cross(dir(l2))) < EPS; }
+bool perpendicular(Line l1, Line l2) { return fabs(dir(l1).dot(dir(l2))) < EPS; }
+bool lineIntersection(Line l1, Line l2, Point &res) {
+    Point r = dir(l1), s = dir(l2);
+    double d = r.cross(s);
+    if(fabs(d)<EPS) return false;
+    double t = (l2.a - l1.a).cross(s)/d;
+    res = l1.a + r*t;
+    return true;
+}
+double distancePointLine(Point P, Line l) { return fabs((l.b-l.a).cross(P-l.a))/(l.b-l.a).norm(); }
+Point projection(Point P, Line l) { Point v = l.b-l.a; double t=(P-l.a).dot(v)/v.norm2(); return l.a + v*t; }
+
+// ===== SEGMENTS =====
+bool onSegment(Point A, Point B, Point P) { return fabs((B-A).cross(P-A))<EPS && (P-A).dot(P-B)<=EPS; }
+int orient(Point A, Point B, Point C) { double v=(B-A).cross(C-A); if(fabs(v)<EPS) return 0; return v>0?1:-1; }
+bool segmentIntersect(Point A, Point B, Point C, Point D) {
+    int o1=orient(A,B,C), o2=orient(A,B,D), o3=orient(C,D,A), o4=orient(C,D,B);
+    if(o1!=o2 && o3!=o4) return true;
+    if(o1==0 && onSegment(A,B,C)) return true;
+    if(o2==0 && onSegment(A,B,D)) return true;
+    if(o3==0 && onSegment(C,D,A)) return true;
+    if(o4==0 && onSegment(C,D,B)) return true;
+    return false;
+}
+
+// ===== CONVEX HULL =====
+bool cmpPoint(Point a, Point b) { if(fabs(a.x-b.x)>EPS) return a.x<b.x; return a.y<b.y; }
+vector<Point> convexHull(vector<Point> pts) {
+    sort(pts.begin(), pts.end(), cmpPoint);
+    int n=pts.size(); if(n<=1) return pts;
+    vector<Point> hull;
+    for(int i=0;i<n;i++){
+        while(hull.size()>=2 && (hull.back()-hull[hull.size()-2]).cross(pts[i]-hull.back())<=0)
+            hull.pop_back();
+        hull.push_back(pts[i]);
+    }
+    int k=hull.size();
+    for(int i=n-2;i>=0;i--){
+        while((int)hull.size()>k && (hull.back()-hull[hull.size()-2]).cross(pts[i]-hull.back())<=0)
+            hull.pop_back();
+        hull.push_back(pts[i]);
+    }
+    hull.pop_back();
+    return hull;
+}
+
+// ===== CONVEX POLYGON CHECK =====
+bool isConvex(vector<Point> &p){
+    int n=p.size(); if(n<3) return false;
+    int sign=0;
+    for(int i=0;i<n;i++){
+        double c=(p[(i+1)%n]-p[i]).cross(p[(i+2)%n]-p[(i+1)%n]);
+        if(fabs(c)<EPS) continue;
+        if(sign==0) sign=c>0?1:-1;
+        else if((c>0 && sign<0)||(c<0 && sign>0)) return false;
+    }
+    return true;
+}
+
+// ===== MAIN EXEMPLE =====
+int main(){
+    Point A(0,0), B(1,0), C(1,1), P(0.5,0.5);
+
+    cout<<"Distance A-B: "<<distance(A,B)<<"\n";
+    cout<<"Angle ABC (deg): "<<angleABC(A,B,C)*180/PI<<"\n";
+
+    if(pointInAngle(A,B,C,P)) cout<<"P is inside angle\n"; else cout<<"P outside angle\n";
+
+    Point R=rotate(P,B,PI/2);
+    cout<<"P after rotation 90deg around B: ("<<R.x<<","<<R.y<<")\n";
+
+    Point Tvec(1,2);
+    Point Q=translate(P,Tvec);
+    cout<<"P after translation by (1,2): ("<<Q.x<<","<<Q.y<<")\n";
+
+    cout<<"Rectangle area 3x4: "<<rectangleArea(3,4)<<"\n";
+    cout<<"Triangle area Heron (3,4,5): "<<triangleAreaHeron(3,4,5)<<"\n";
+    cout<<"Circle area r=2: "<<circleArea(2)<<"\n";
+
+    Line l1(A,B), l2(B,C); 
+    cout<<"Lines perpendicular? "<<(perpendicular(l1,l2)?"Yes":"No")<<"\n";
+
+    Point inter;
+    if(lineIntersection(l1,l2,inter)) cout<<"Intersection at: ("<<inter.x<<","<<inter.y<<")\n";
+
+    vector<Point> poly={A,B,C,P};
+    vector<Point> hull=convexHull(poly);
+    cout<<"Convex hull points:\n";
+    for(auto &pt:hull) cout<<"("<<pt.x<<","<<pt.y<<") "; cout<<"\n";
+
+    cout<<"Polygon convex? "<<(isConvex(poly)?"Yes":"No")<<"\n";
+
+    return 0;
+}

@@ -1,0 +1,29 @@
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+using namespace std;
+
+// ordered_set avec éléments répétables
+typedef tree<long long, null_type, less_equal<long long>, 
+             rb_tree_tag, tree_order_statistics_node_update> ordered_multiset;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    ordered_multiset os;
+    os.insert(1);
+    os.insert(2); os.insert(2);
+    os.insert(3);
+    os.insert(5); os.insert(5); os.insert(5);
+    os.insert(7);
+
+    long long x = 5;
+
+    // nombre d'éléments <= x
+    long long count = os.order_of_key(x+1); // order_of_key(y) = nb éléments < y
+    cout << "Number of elements <= " << x << " is: " << count << "\n";
+
+    return 0;
+}

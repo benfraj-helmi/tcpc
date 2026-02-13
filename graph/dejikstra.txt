@@ -1,0 +1,58 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long INF = 1e18; 
+const int N = 100005;
+
+vector<pair<int, long long>> adj[N]; 
+long long dist[N];                   
+int n, m;                           
+
+void dijkstra(int src) {
+    for (int i = 1; i <= n; i++) dist[i] = INF;
+
+    dist[src] = 0;
+    priority_queue<pair<long long, int>, vector<pair<long long,int>>, greater<>> pq;
+    pq.push({0, src});
+
+    while (!pq.empty()) {
+        auto [d, u] = pq.top(); pq.pop();
+        if (d != dist[u]) continue; // on a déjà trouvé une meilleure distance
+
+        for (auto [v, w] : adj[u]) {
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+}
+long long int d[200005];
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+for(long long int i=1;i<200005;i++){
+    for(long long int j=i;j<200005;j+=i){
+        d[j]+=i;
+    }
+}
+    cin >> n >> m; 
+    int s,f;
+    cin>>s>>f;
+    for (int i = 0; i < m; i++) {
+        int u, v; long long w;
+       
+        cin >> u >> v ;
+         w=d[u+v];
+        adj[u].push_back({v, 0});
+       
+       adj[v].push_back({u, w});
+    }
+
+    
+         dijkstra(s);
+        if (dist[f] == INF) cout << -1<<endl;
+        else cout << dist[f] <<endl;
+    
+}

@@ -1,0 +1,69 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+/* ======================================================
+   Ordered Set / Multiset (long long)
+   ====================================================== */
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    // 1️⃣ Déclaration d’un set ou multiset de long long
+    set<long long> s;        // set = éléments uniques
+    multiset<long long> ms;  // multiset = éléments peuvent se répéter
+
+    // 2️⃣ Insertion
+    s.insert(10);
+    s.insert(20);
+    s.insert(30);
+    ms.insert(10);
+    ms.insert(10);
+    ms.insert(20);
+
+    // 3️⃣ Lower bound / Upper bound
+    cout << "=== Lower Bound / Upper Bound ===\n";
+    long long x = 15;
+
+    auto it_lb = s.lower_bound(x); // premier élément >= x
+    auto it_ub = s.upper_bound(x); // premier élément > x
+
+    if(it_lb != s.end()) cout << "Lower bound of " << x << " in set: " << *it_lb << "\n";
+    else cout << "Lower bound not found\n";
+
+    if(it_ub != s.end()) cout << "Upper bound of " << x << " in set: " << *it_ub << "\n";
+    else cout << "Upper bound not found\n";
+
+    // 4️⃣ Compter le nombre d’éléments dans un intervalle [L, R]
+    long long L = 10, R = 25;
+    auto it1 = s.lower_bound(L); // premier >= L
+    auto it2 = s.upper_bound(R); // premier > R
+    long long count = distance(it1, it2); // nombre d’éléments dans [L,R]
+    cout << "Number of elements in [" << L << "," << R << "] in set: " << count << "\n";
+
+    // 5️⃣ Exemple avec multiset (éléments répétés)
+    cout << "\n=== Multiset example ===\n";
+    ms.insert(15); // ajouter un autre élément 15
+    cout << "All elements in multiset: ";
+    for(auto x: ms) cout << x << " ";
+    cout << "\n";
+
+    // Nombre d’éléments exactement = 10
+    cout << "Count of 10 in multiset: " << ms.count(10) << "\n";
+
+    // Nombre d’éléments dans [10,20] avec multiset
+    auto it3 = ms.lower_bound(10);
+    auto it4 = ms.upper_bound(20);
+    long long count_ms = distance(it3, it4);
+    cout << "Number of elements in [10,20] in multiset: " << count_ms << "\n";
+
+    // 6️⃣ Supprimer un élément (ou un exemplaire dans multiset)
+    s.erase(20);   // supprime 20 du set
+    ms.erase(ms.find(10)); // supprime un 10 du multiset
+    cout << "Set after erase 20: ";
+    for(auto x: s) cout << x << " "; cout << "\n";
+    cout << "Multiset after erase one 10: ";
+    for(auto x: ms) cout << x << " "; cout << "\n";
+
+    return 0;
+}

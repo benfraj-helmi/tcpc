@@ -1,0 +1,84 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const double PI = acos(-1.0);
+const double EPS = 1e-9;
+
+struct Point {
+    double x, y;
+
+    Point() : x(0), y(0) {}
+    Point(double _x, double _y) : x(_x), y(_y) {}
+
+    Point operator+(const Point &p) const { return Point(x+p.x, y+p.y); }
+    Point operator-(const Point &p) const { return Point(x-p.x, y-p.y); }
+    Point operator*(double k) const { return Point(x*k, y*k); }
+    Point operator/(double k) const { return Point(x/k, y/k); }
+
+    double dot(const Point &p) const { return x*p.x + y*p.y; }
+    double cross(const Point &p) const { return x*p.y - y*p.x; }
+    double norm2() const { return x*x + y*y; }
+    double norm() const { return sqrt(norm2()); }
+};
+
+// Distance between two points
+double distance(const Point &a, const Point &b) {
+    return (a-b).norm();
+}
+
+// Angle ABC with center B
+double angleABC(const Point &A, const Point &B, const Point &C) {
+    Point BA = A-B;
+    Point BC = C-B;
+    double ang = acos( max(-1.0, min(1.0, BA.dot(BC)/(BA.norm()*BC.norm()))) );
+    return ang; // en radians
+}
+
+// Check if point P is inside the angle ∠ABC (center B)
+bool pointInAngle(const Point &A, const Point &B, const Point &C, const Point &P) {
+    Point BA = A-B;
+    Point BC = C-B;
+    Point BP = P-B;
+    double cross1 = BA.cross(BP);
+    double cross2 = BP.cross(BC);
+
+    // Si cross1 et cross2 ont le même signe ou sont proches de zéro, le point est dans l’angle
+    return (cross1 >= -EPS && cross2 >= -EPS);
+}
+
+// Rotate point P around center C by theta radians
+Point rotate(const Point &P, const Point &C, double theta) {
+    Point v = P - C;
+    double cosT = cos(theta), sinT = sin(theta);
+    Point res;
+    res.x = v.x * cosT - v.y * sinT + C.x;
+    res.y = v.x * sinT + v.y * cosT + C.y;
+    return res;
+}
+
+// Translate point P by vector T
+Point translate(const Point &P, const Point &T) {
+    return P + T;
+}
+
+// Exemple d’utilisation
+int main() {
+    Point A(0,0), B(1,0), C(1,1);
+    Point P(1,0.5);
+
+    cout << "Distance A-B: " << distance(A,B) << "\n";
+    cout << "Angle ABC (rad): " << angleABC(A,B,C) << "\n";
+    cout << "Angle ABC (deg): " << angleABC(A,B,C)*180/PI << "\n";
+
+    if(pointInAngle(A,B,C,P)) cout << "P is inside the angle\n";
+    else cout << "P is outside the angle\n";
+
+    Point R = rotate(P, B, PI/2); // rotation de P autour de B de 90°
+    cout << "P after rotation around B by 90 deg: (" << R.x << "," << R.y << ")\n";
+
+    Point T(1,2);
+    Point Q = translate(P, T);
+    cout << "P after translation by (1,2): (" << Q.x << "," << Q.y << ")\n";
+
+    return 0;
+}

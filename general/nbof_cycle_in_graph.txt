@@ -1,0 +1,52 @@
+#include <bits/stdc++.h>
+using namespace std;
+int vis[105];
+vector<int>g[105];
+ 
+void dfs1(int node){
+    vis[node]=1;
+    for(int i=0;i<g[node].size();i++){
+        if(!vis[g[node][i]]){
+            dfs1(g[node][i]);
+        }
+    }
+}
+ 
+ 
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    int e=0;
+    int x,m;
+    cin>>x>>m;
+    
+    for(int i=0;i<m;i++){
+        int u,v;
+        cin>>u>>v;
+        u--;v--;
+        g[u].push_back(v);
+        g[v].push_back(u);
+    }
+    bool test=true;
+    dfs1(0);
+    for(int i=0;i<x;i++){
+        if(!vis[i])test=false;
+    }
+ 
+     if(test){
+         
+     long long edges = 0;
+    for (int i = 0; i <x; i++) {
+        edges += g[i].size();
+    }
+    edges /= 2;
+ 
+    e= edges - x + 1;
+     
+     }
+ 
+    if(test && e==1)cout<<"FHTAGN!"<<endl;
+    else cout<<"NO"<<endl;
+ 
+    return 0;
+}

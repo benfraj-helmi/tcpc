@@ -1,0 +1,183 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+/* ======================================================
+   1️⃣ Interval DP (DP sur intervalles)
+   Problème type : Min Cut Palindrome
+   - Énoncé : Donné une chaîne s, couper en le moins de morceaux
+     pour que chaque morceau soit un palindrome.
+   - dp[i][j] = min cuts pour transformer s[i..j] en palindrome
+   - Transition : si s[i..j] palindrome → 0
+                   sinon → dp[i][k] + dp[k+1][j] + 1 pour i <= k < j
+   ====================================================== */
+long long intervalDP_minCutPalindrome(const string &s){
+    int n = s.size();
+    vector<vector<long long>> dp(n, vector<long long>(n, 0));
+    vector<vector<bool>> isPal(n, vector<bool>(n, false));
+
+    // Précalcul des palindromes (pour éviter recalcul)
+    for(int len=1; len<=n; len++){
+        for(int i=0;i+len<=n;i++){
+            int j = i+len-1;
+            if(len==1) isPal[i][j]=true; // 1 lettre = palindrome
+            else if(len==2) isPal[i][j]=(s[i]==s[j]); // 2 lettres identiques = palindrome
+            else isPal[i][j]=(s[i]==s[j] && isPal[i+1][j-1]);
+        }
+    }
+
+    // Remplissage dp
+    for(int len=1; len<=n; len++){
+        for(int i=0; i+len<=n; i++){
+            int j = i+len-1;
+            if(isPal[i][j]) dp[i][j]=0;
+            else{
+                dp[i][j] = LLONG_MAX;
+                for(int k=i; k<j; k++)
+                    dp[i][j] = min(dp[i][j], dp[i][k]+dp[k+1][j]+1);
+            }
+        }
+    }
+    return dp[0][n-1];
+}
+
+/* ======================================================
+   2️⃣ Bitmask DP
+   Problème type : TSP (Traveling Salesman Problem)
+   - Énoncé : Donné un graphe complet avec distances dist[i][j],
+     trouver le coût minimal pour visiter toutes les villes.
+   - dp[mask] = min coût pour visiter les villes du mask (bitmask)
+   - Transition : ajouter une ville non visitée et mettre à jour le coût
+   ====================================================== */
+long long bitmaskDP_TSP(const vector<vector<long long>> &dist){
+    int n = dist.size();
+    long long INF = 1e18;
+    vector<long long> dp(1<<n, INF);
+    dp[1] = 0; // départ à la ville 0
+
+    for(int mask=1; mask<(1<<n); mask++){
+        for(int u=0; u<n; u++){
+            if(!(mask & (1<<u))) continue; // u n'est pas dans le mask
+            for(int v=0; v<n; v++){
+                if(mask & (1<<v)) continue; // v déjà visitée
+                int next_mask = mask | (1<<v);
+                dp[next_mask] = min(dp[next_mask], dp[mask]+dist[u][v]);
+            }
+        }
+    }
+    return dp[(1<<n)-1]; // mask avec toutes les villes visitées
+}
+
+/* ======================================================
+   3️⃣ Knapsack DP
+   Problème type : 0/1 Knapsack
+   - Énoncé : Donné poids wt[i] et valeur val[i] pour chaque objet,
+     et capacité W, maximiser la valeur totale sans dépasser W.
+   - dp[w] = valeur max avec poids ≤ w
+   ====================================================== */
+long long knapsack(const vector<long long> &wt, const vector<long long> &val, long long W){
+    int n = wt.size();
+    vector<long long> dp(W+1, 0);
+
+    for(int i=0;i<n;i++){
+        for(int w=W; w>=wt[i]; w--){
+            dp[w] = max(dp[w], dp[w-wt[i]] + val[i]);
+        }
+    }
+    return dp[W];
+}
+
+/* ======================================================
+   4️⃣ Digit DP
+   Problème type : Compter nombres ≤ N avec une propriété
+   - Énoncé : Compter tous les nombres ≤ N où la somme des chiffres pairs
+     > somme des chiffres impairs (exemple simple)
+   - Recursion : pos = position actuelle du chiffre
+                 tight = si on est limité par N
+                 sumEven / sumOdd = sommes cumulées
+   ====================================================== */
+long long digitDP_count(const string &num){
+    int n = num.size();
+    vector<vector<vector<long long>>> dp(n+1, vector<vector<long long>>(2, vector<long long>(2, -1)));
+
+    function<long long(int,int,int,int)> dfs = [&](int pos,int tight,int sumEven,int sumOdd){
+        if(pos==n) return (sumEven>sumOdd?1LL:0LL); // fin de nombre
+        if(dp[pos][tight][sumEven?1:0][sumOdd?1:0] != -1)
+            return dp[pos][tight][sumEven?1:0][sumOdd?1:0];
+        long long res=0;
+        int limit = tight? num[pos]-'0':9;
+        for(int d=0;d<=limit;d++){
+            res += dfs(pos+1, tight&&(d==limit),
+                       sumEven + (d%2==0), sumOdd + (d%2==1));
+        }
+        return dp[pos][tight][sumEven?1:0][sumOdd?1:0] = res;
+    };
+
+    return dfs(0,1,0,0);
+}
+
+/* ======================================================
+   5️⃣ Subset Sum DP
+   Problème type : Compter sous-ensembles donnant somme S
+   - dp[s] = nombre de sous-ensembles avec somme s
+   ====================================================== */
+long long subsetSumDP(const vector<long long> &a, long long S){
+    vector<long long> dp(S+1,0); dp[0]=1; // base : somme 0 = 1 subset (vide)
+    for(long long x: a){
+        for(long long s=S;s>=x;s--) dp[s]+=dp[s-x];
+    }
+    return dp[S];
+}
+
+/* ======================================================
+   MAIN – Test complet avec explications
+   ====================================================== */
+int main(){
+    ios::sync_with_stdio(false); cin.tie(0);
+
+    // Interval DP
+    cout << "=== Interval DP: Min Cut Palindrome ===\n";
+    string s;
+    cout << "Entrer une chaîne (ex: abac) : ";
+    cin >> s;
+    cout << "Min cuts needed: " << intervalDP_minCutPalindrome(s) << "\n\n";
+
+    // Bitmask DP
+    cout << "=== Bitmask DP: TSP ===\n";
+    int n;
+    cout << "Entrer nombre de villes : ";
+    cin >> n;
+    vector<vector<long long>> dist(n, vector<long long>(n));
+    cout << "Entrer matrice des distances :\n";
+    for(int i=0;i<n;i++)
+        for(int j=0;j<n;j++) cin >> dist[i][j];
+    cout << "Min tour cost: " << bitmaskDP_TSP(dist) << "\n\n";
+
+    // Knapsack
+    cout << "=== Knapsack DP ===\n";
+    int m; long long W;
+    cout << "Entrer nombre d'objets et capacité : ";
+    cin >> m >> W;
+    vector<long long> wt(m), val(m);
+    cout << "Entrer poids et valeur de chaque objet :\n";
+    for(int i=0;i<m;i++) cin >> wt[i] >> val[i];
+    cout << "Max value achievable: " << knapsack(wt,val,W) << "\n\n";
+
+    // Digit DP
+    cout << "=== Digit DP ===\n";
+    string num;
+    cout << "Entrer nombre N (ex: 100) : ";
+    cin >> num;
+    cout << "Count numbers <= " << num << " with sumEven>sumOdd: " << digitDP_count(num) << "\n\n";
+
+    // Subset sum DP
+    cout << "=== Subset Sum DP ===\n";
+    int k; long long S;
+    cout << "Entrer nombre d'éléments et somme S : ";
+    cin >> k >> S;
+    vector<long long> arr(k);
+    cout << "Entrer les éléments : ";
+    for(int i=0;i<k;i++) cin >> arr[i];
+    cout << "Number of subsets with sum=" << S << " : " << subsetSumDP(arr,S) << "\n";
+
+    return 0;
+}

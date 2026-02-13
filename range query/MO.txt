@@ -1,0 +1,112 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Query {
+    long long l, r, idx; // 0-indexed interval [l,r]
+};
+
+// Comparateur Mo Algorithm
+bool compare(const Query &a, const Query &b) {
+    static long long blockSize = 450; // ≈ sqrt(n), ajuste selon ton n
+    long long block_a = a.l / blockSize;
+    long long block_b = b.l / blockSize;
+    if (block_a != block_b) return block_a < block_b;
+    return (block_a & 1) ? a.r > b.r : a.r < b.r;
+}
+
+// ====== VARIABLES GLOBALES ======
+long long MAX_VAL = 1e6; // valeur max dans ton tableau
+vector<long long> freq;   // fréquence de chaque élément
+long long answer;         // réponse pour intervalle courant
+
+// ====== EXEMPLES DE FONCTIONS add/remove ======
+
+// 1 Nombre de valeurs distinctes
+void add_distinct(long long x) {
+    if(freq[x]==0) answer++;
+    freq[x]++;
+}
+void remove_distinct(long long x) {
+    freq[x]--;
+    if(freq[x]==0) answer--;
+}
+
+// 2️ Somme des éléments
+void add_sum(long long x) {
+    answer += x;
+}
+void remove_sum(long long x) {
+    answer -= x;
+}
+
+// 3️ Somme spéciale freq[x]^2 * x
+void add_special(long long x) {
+    answer -= freq[x]*freq[x]*x;
+    freq[x]++;
+    answer += freq[x]*freq[x]*x;
+}
+void remove_special(long long x) {
+    answer -= freq[x]*freq[x]*x;
+    freq[x]--;
+    answer += freq[x]*freq[x]*x;
+}
+
+// 4️ XOR des éléments
+void add_xor(long long x) {
+    answer ^= x;
+}
+void remove_xor(long long x) {
+    answer ^= x;
+}
+
+// ====== MO ALGORITHM ======
+vector<long long> mosAlgorithm(const vector<long long> &arr, vector<Query> &queries,
+                               void (*add)(long long), void (*remove)(long long)) {
+    long long n = arr.size();
+    long long q = queries.size();
+    freq.assign(MAX_VAL+1, 0);
+    answer = 0;
+    vector<long long> res(q);
+
+    sort(queries.begin(), queries.end(), compare);
+
+    long long currentL = 0, currentR = -1;
+    for(auto &query : queries) {
+        long long L = query.l, R = query.r;
+        while(currentL > L) add(arr[--currentL]);
+        while(currentR < R) add(arr[++currentR]);
+        while(currentL < L) remove(arr[currentL++]);
+        while(currentR > R) remove(arr[currentR--]);
+
+        res[query.idx] = answer;
+    }
+    return res;
+}
+
+// ====== MAIN ======
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    // Exemple simple :
+    // Compter le nombre de valeurs distinctes dans chaque sous-tableau [l,r]
+    long long n, q;
+    cin >> n >> q;
+    vector<long long> arr(n);
+    for(long long i=0; i<n; i++) cin >> arr[i];
+
+    vector<Query> queries(q);
+    for(long long i=0; i<q; i++) {
+        cin >> queries[i].l >> queries[i].r;
+        queries[i].l--; queries[i].r--; // 0-indexed
+        queries[i].idx = i;
+    }
+
+    // Appel Mo Algorithm
+    vector<long long> answers = mosAlgorithm(arr, queries, add_special, remove_special);
+
+    // Affichage des réponses
+    for(auto ans : answers) cout << ans << "\n";
+
+    return 0;
+}

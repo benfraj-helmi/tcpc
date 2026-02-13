@@ -1,0 +1,49 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    double x = 3.14159265359;
+
+    // ===== FIXER LE NOMBRE DE VIRGULES =====
+    cout << fixed << setprecision(2); // toujours 2 chiffres après la virgule
+    cout << "x avec 2 décimales: " << x << "\n";
+
+    cout << fixed << setprecision(5); // 5 chiffres après la virgule
+    cout << "x avec 5 décimales: " << x << "\n";
+
+    // ===== ALIGNEMENT / LARGEUR =====
+    cout << setw(10) << 42 << "\n";          // largeur 10, aligné à droite
+    cout << left << setw(10) << 42 << "\n";  // aligné à gauche
+    cout << right << setw(10) << 42 << "\n"; // aligné à droite (par défaut)
+
+    // ===== REMPLISSAGE =====
+    cout << setfill('*') << setw(10) << 42 << "\n"; // remplissage avec *
+
+    // ===== FORMAT SCIENTIFIQUE =====
+    cout << scientific << x << "\n"; // 3.141593e+00
+
+    // ===== AFFICHAGE DE BOOL =====
+    bool b = true;
+    cout << boolalpha << b << "\n"; // affiche true au lieu de 1
+    cout << noboolalpha << b << "\n"; // affiche 1
+
+    // ===== HEXA / OCTAL / DEC =====
+    int n = 255;
+    cout << hex << n << "\n"; // ff
+    cout << oct << n << "\n"; // 377
+    cout << dec << n << "\n"; // 255
+
+    // ===== AFFICHAGE VECTEUR / TABLEAU =====
+    vector<double> v = {1.2345, 2.3456, 3.4567};
+    cout << fixed << setprecision(2);
+    for(double val : v) cout << val << " ";
+    cout << "\n";
+
+    // ===== AUTRES FONCTIONS =====
+    // endl -> saut de ligne + flush
+    // '\n' -> juste saut de ligne
+    // flush -> vider le buffer sans sauter de ligne
+    cout << "Hello" << flush;
+
+    return 0;
+}

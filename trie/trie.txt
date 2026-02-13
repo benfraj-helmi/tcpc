@@ -1,0 +1,77 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct TrieNode {
+    TrieNode* children[26];
+    bool isEnd; // vrai si un mot se termine ici
+    TrieNode() {
+        isEnd = false;
+        for(int i=0;i<26;i++) children[i] = nullptr;
+    }
+};
+
+struct Trie {
+    TrieNode* root;
+    int distinctCount; // nombre de chaînes distinctes
+
+    Trie() {
+        root = new TrieNode();
+        distinctCount = 0;
+    }
+
+    // Ajouter un mot
+    void insert(const string &s) {
+        TrieNode* node = root;
+        for(char c : s) {
+            int idx = c - 'a';
+            if(!node->children[idx])
+                node->children[idx] = new TrieNode();
+            node = node->children[idx];
+        }
+        if(!node->isEnd) { // si le mot n’existait pas encore
+            node->isEnd = true;
+            distinctCount++; // on augmente le compteur
+        }
+    }
+
+    // Vérifier si un mot existe
+    bool search(const string &s) {
+        TrieNode* node = root;
+        for(char c : s) {
+            int idx = c - 'a';
+            if(!node->children[idx]) return false;
+            node = node->children[idx];
+        }
+        return node->isEnd;
+    }
+
+    // Vérifier si un préfixe existe
+    bool startsWith(const string &prefix) {
+        TrieNode* node = root;
+        for(char c : prefix) {
+            int idx = c - 'a';
+            if(!node->children[idx]) return false;
+            node = node->children[idx];
+        }
+        return true;
+    }
+
+    // Nombre de chaînes distinctes
+    int getDistinctCount() {
+        return distinctCount;
+    }
+};
+
+int main() {
+    Trie trie;
+    trie.insert("hello");
+    trie.insert("hey");
+    trie.insert("hi");
+    trie.insert("hello"); // mot déjà existant, ne compte pas
+
+    cout << trie.search("hey") << "\n";        // 1 (vrai)
+    cout << trie.search("hola") << "\n";       // 0 (faux)
+    cout << trie.startsWith("he") << "\n";     // 1 (préfixe existe)
+    cout << trie.startsWith("ha") << "\n";     // 0 (pas de préfixe)
+    cout << trie.getDistinctCount() << "\n";   // 3 chaînes distinctes ("hello","hey","hi")
+}

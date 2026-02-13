@@ -1,0 +1,33 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int n;
+    long long m;
+    cin >> n >> m;
+
+    m--; // index 0
+
+    vector<int> a(n);
+    int l = 0, r = n;
+
+    for (int i = 1; i < n; i++) {
+
+        if ( (1LL << (n - i - 1)) & m ) {
+            r--;
+            a[r] = i;   // droite
+        } else {
+            a[l] = i;   // gauche
+            l++;
+        }
+    }
+
+    a[l] = n;
+
+    for (int i = 0; i < n; i++) {
+        cout << a[i] << " ";
+    }
+}

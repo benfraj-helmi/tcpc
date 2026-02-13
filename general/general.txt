@@ -1,0 +1,1186 @@
+#include <bits/stdc++.h>
+using namespace std;
+ 
+//////////////// BITMASK UTILITIES //////////////////////
+ 
+bool getBit(long long x, int i) {
+    return (x >> i) & 1;
+}
+ 
+long long setBit(long long x, int i) {
+    return x | (1LL << i);
+}
+ 
+long long clearBit(long long x, int i) {
+    return x & ~(1LL << i);
+}
+ 
+long long flipBit(long long x, int i) {
+    return x ^ (1LL << i);
+}
+ 
+int countSetBits(long long x) {
+    return __builtin_popcountll(x);
+}
+ 
+int lowestSetBit(long long x) {
+    if (x == 0) return -1;
+    return __builtin_ctzll(x);
+}
+ 
+int highestSetBit(long long x) {
+    if (x == 0) return -1;
+    return 63 - __builtin_clzll(x);
+}
+ 
+bool isPowerOfTwo(long long x) {
+    return x && !(x & (x - 1));
+}
+ 
+long long removeLowestSetBit(long long x) {
+    return x & (x - 1);
+}
+ 
+long long isolateLowestSetBit(long long x) {
+    return x & -x;
+}
+ 
+void generateAllSubmasks(int mask) {
+    for (int sub = mask; sub; sub = (sub - 1) & mask) {
+        cout << bitset<32>(sub) << endl;
+    }
+}
+ 
+//////////////////////////////////////////////////////////
+//////////////// BRUTE FORCE UTILITIES //////////////////////
+ 
+void generateAllSubsets(vector<int>& a) {
+    int n = a.size();
+    for (int mask = 0; mask < (1 << n); ++mask) {
+        vector<int> subset;
+        for (int i = 0; i < n; ++i) {
+            if ((mask >> i) & 1) subset.push_back(a[i]);
+        }
+        // traiter le sous-ensemble ici
+        for (int x : subset) cout << x << " ";
+        cout << endl;
+    }
+}
+ 
+void generateAllPermutations(vector<int> a) {
+    sort(a.begin(), a.end());
+    do {
+        for (int x : a) cout << x << " ";
+        cout << endl;
+    } while (next_permutation(a.begin(), a.end()));
+}
+ 
+void generateAllKCombinations(vector<int>& a, int k) {
+    int n = a.size();
+    vector<bool> select(n);
+    fill(select.end() - k, select.end(), true);
+    do {
+        vector<int> comb;
+        for (int i = 0; i < n; ++i) {
+            if (select[i]) comb.push_back(a[i]);
+        }
+        for (int x : comb) cout << x << " ";
+        cout << endl;
+    } while (next_permutation(select.begin(), select.end()));
+}
+ 
+void generateAllBinaryPartitions(int n) {
+    for (int mask = 0; mask < (1 << n); ++mask) {
+        for (int i = 0; i < n; ++i) {
+            cout << ((mask >> i) & 1);
+        }
+        cout << endl;
+    }
+}
+ 
+#include <bits/stdc++.h>
+using namespace std;
+ 
+/////////////////////////////////////////////////////////////
+//////////////// BINARY SEARCH UTILITIES //////////////////////
+ 
+bool binarySearch(const vector<long long int>& a, long long int target) {
+    int l = 0, r = (int)a.size() - 1;
+    while (l <= r) {
+        int m = l + (r - l) / 2;
+        if (a[m] == target) return true;
+        if (a[m] < target) l = m + 1;
+        else r = m - 1;
+    }
+    return false;
+}
+ 
+int lowerBound(const vector<long long int>& a, long long int target) {
+    int l = 0, r = (int)a.size();
+    while (l < r) {
+        int m = l + (r - l) / 2;
+        if (a[m] < target) l = m + 1;
+        else r = m;
+    }
+    return l;
+}
+ 
+int upperBound(const vector<long long int>& a, long long int target) {
+    int l = 0, r = (int)a.size();
+    while (l < r) {
+        int m = l + (r - l) / 2;
+        if (a[m] <= target) l = m + 1;
+        else r = m;
+    }
+    return l;
+}
+ 
+long long int binarySearchFirstTrue(long long int l, long long int r, function<bool(long long int)> condition) {
+    while (l < r) {
+        long long int m = l + (r - l) / 2;
+        if (condition(m)) r = m;
+        else l = m + 1;
+    }
+    return l;
+}
+ 
+long long int binarySearchLastTrue(long long int l, long long int r, function<bool(long long int)> condition) {
+    while (l < r) {
+        long long int m = l + (r - l + 1) / 2;
+        if (condition(m)) l = m;
+        else r = m - 1;
+    }
+    return l;
+}
+ 
+///////////////////////////////////////////////////////////////
+//////////////// SLIDING WINDOW & TWO POINTERS //////////////////////
+ 
+long long int maxSubarraySum(const vector<long long int>& a) {
+    long long int maxSum = a[0], curSum = a[0];
+    for (size_t i = 1; i < a.size(); ++i) {
+        curSum = max(a[i], curSum + a[i]);
+        maxSum = max(maxSum, curSum);
+    }
+    return maxSum;
+}
+ 
+long long int maxFixedWindowSum(const vector<long long int>& a, int k) {
+    long long int sum = 0, maxSum = LLONG_MIN;
+    for (int i = 0; i < (int)a.size(); ++i) {
+        sum += a[i];
+        if (i >= k) sum -= a[i - k];
+        if (i >= k - 1) maxSum = max(maxSum, sum);
+    }
+    return maxSum;
+}
+ 
+long long int countSubarraysWithSumAtMost(const vector<long long int>& a, long long int s) {
+    int l = 0;
+    long long int sum = 0, count = 0;
+    for (int r = 0; r < (int)a.size(); ++r) {
+        sum += a[r];
+        while (sum > s) sum -= a[l++];
+        count += r - l + 1;
+    }
+    return count;
+}
+ 
+bool hasSubarrayWithSum(const vector<long long int>& a, long long int target) {
+    int l = 0;
+    long long int sum = 0;
+    for (int r = 0; r < (int)a.size(); ++r) {
+        sum += a[r];
+        while (sum > target) sum -= a[l++];
+        if (sum == target) return true;
+    }
+    return false;
+}
+ 
+int longestSubarrayKDistinct(const vector<long long int>& a, int k) {
+    unordered_map<long long int, int> freq;
+    int l = 0, maxLen = 0;
+    for (int r = 0; r < (int)a.size(); ++r) {
+        freq[a[r]]++;
+        while ((int)freq.size() > k) {
+            if (--freq[a[l]] == 0) freq.erase(a[l]);
+            l++;
+        }
+        maxLen = max(maxLen, r - l + 1);
+    }
+    return maxLen;
+}
+ 
+////////////////////////////////////////////////////////////////////
+ 
+//////////////// PREFIX SUM UTILITIES //////////////////////
+ 
+vector<long long int> buildPrefixSum1D(const vector<long long int>& a) {
+    int n = a.size();
+    vector<long long int> prefix(n, 0);
+    prefix[0] = a[0];
+    for (int i = 1; i < n; ++i)
+        prefix[i] = prefix[i - 1] + a[i];
+    return prefix;
+}
+ 
+long long int getRangeSum1D(const vector<long long int>& prefix, int l, int r) {
+    return prefix[r] - (l > 0 ? prefix[l - 1] : 0);
+}
+ 
+vector<vector<long long int>> buildPrefixSum2D(const vector<vector<long long int>>& grid) {
+    int n = grid.size(), m = grid[0].size();
+    vector<vector<long long int>> prefix(n, vector<long long int>(m, 0));
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < m; ++j) {
+            prefix[i][j] = grid[i][j];
+            if (i > 0) prefix[i][j] += prefix[i - 1][j];
+            if (j > 0) prefix[i][j] += prefix[i][j - 1];
+            if (i > 0 && j > 0) prefix[i][j] -= prefix[i - 1][j - 1];
+        }
+    return prefix;
+}
+ 
+long long int getRangeSum2D(const vector<vector<long long int>>& prefix, int x1, int y1, int x2, int y2) {
+    long long int res = prefix[x2][y2];
+    if (x1 > 0) res -= prefix[x1 - 1][y2];
+    if (y1 > 0) res -= prefix[x2][y1 - 1];
+    if (x1 > 0 && y1 > 0) res += prefix[x1 - 1][y1 - 1];
+    return res;
+}
+ 
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+////////////////////// DYNAMIC PROGRAMMING //////////////////////
+ 
+// Fibonacci en bottom-up DP (long long int)
+long long int fibonacci(long long int n) {
+    if (n <= 1) return n;
+    vector<long long int> dp(n + 1);
+    dp[0] = 0, dp[1] = 1;
+    for (long long int i = 2; i <= n; ++i)
+        dp[i] = dp[i - 1] + dp[i - 2];
+    return dp[n];
+}
+ 
+// 1D DP: Minimum coins to make amount (unlimited coins)
+long long int coinChangeMin(const vector<long long int>& coins, long long int amount) {
+    const long long int INF = 1e18;
+    vector<long long int> dp(amount + 1, INF);
+    dp[0] = 0;
+    for (long long int c : coins)
+        for (long long int i = c; i <= amount; ++i)
+            dp[i] = min(dp[i], dp[i - c] + 1);
+    return dp[amount] == INF ? -1 : dp[amount];
+}
+ 
+// Count number of ways to make amount using unlimited coins
+long long int coinChangeWays(const vector<long long int>& coins, long long int amount) {
+    vector<long long int> dp(amount + 1, 0);
+    dp[0] = 1;
+    for (long long int c : coins)
+        for (long long int i = c; i <= amount; ++i)
+            dp[i] += dp[i - c];
+    return dp[amount];
+}
+ 
+// Longest Increasing Subsequence (O(n^2))
+long long int LIS(const vector<long long int>& a) {
+    long long int n = a.size();
+    vector<long long int> dp(n, 1);
+    long long int res = 1;
+    for (long long int i = 1; i < n; ++i)
+        for (long long int j = 0; j < i; ++j)
+            if (a[i] > a[j])
+                dp[i] = max(dp[i], dp[j] + 1);
+    for (long long int i = 0; i < n; ++i)
+        res = max(res, dp[i]);
+    return res;
+}
+ 
+// Longest Common Subsequence (LCS)
+long long int LCS(const string& s1, const string& s2) {
+    long long int n = s1.size(), m = s2.size();
+    vector<vector<long long int>> dp(n + 1, vector<long long int>(m + 1));
+    for (long long int i = 1; i <= n; ++i)
+        for (long long int j = 1; j <= m; ++j)
+            if (s1[i - 1] == s2[j - 1])
+                dp[i][j] = 1 + dp[i - 1][j - 1];
+            else
+                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]);
+    return dp[n][m];
+}
+ 
+// 0/1 Knapsack
+long long int knapsack01(long long int capacity, const vector<long long int>& weight, const vector<long long int>& value) {
+    long long int n = weight.size();
+    vector<vector<long long int>> dp(n + 1, vector<long long int>(capacity + 1, 0));
+    for (long long int i = 1; i <= n; ++i)
+        for (long long int w = 0; w <= capacity; ++w)
+            if (w >= weight[i - 1])
+                dp[i][w] = max(dp[i - 1][w], dp[i - 1][w - weight[i - 1]] + value[i - 1]);
+            else
+                dp[i][w] = dp[i - 1][w];
+    return dp[n][capacity];
+}
+ 
+// Partition Equal Subset Sum (true si on peut diviser en 2 subsets avec somme égale)
+bool canPartition(const vector<long long int>& nums) {
+    long long int total = 0;
+    for(auto x : nums) total += x;
+    if (total % 2 != 0) return false;
+    long long int target = total / 2;
+    vector<bool> dp(target + 1, false);
+    dp[0] = true;
+    for (auto num : nums)
+        for (long long int i = target; i >= num; --i)
+            dp[i] = dp[i] || dp[i - num];
+    return dp[target];
+}
+ 
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+////////////////////// DYNAMIC PROGRAMMING BITMASK //////////////////////
+ 
+// Exemple 1 : TSP (Traveling Salesman Problem) classique, O(n² * 2^n)
+// dp[mask][i] = coût minimum pour visiter tous les sommets dans mask et terminer au sommet i
+long long int tspBitmask(const vector<vector<long long int>>& dist) {
+    int n = dist.size();
+    long long int INF = 1e15;
+    vector<vector<long long int>> dp(1 << n, vector<long long int>(n, INF));
+    dp[1][0] = 0; // Début au sommet 0
+ 
+    for (int mask = 1; mask < (1 << n); ++mask) {
+        for (int u = 0; u < n; ++u) {
+            if (!(mask & (1 << u))) continue;
+            for (int v = 0; v < n; ++v) {
+                if (mask & (1 << v)) continue;
+                dp[mask | (1 << v)][v] = min(dp[mask | (1 << v)][v], dp[mask][u] + dist[u][v]);
+            }
+        }
+    }
+    long long int ans = INF;
+    for (int i = 1; i < n; ++i)
+        ans = min(ans, dp[(1 << n) - 1][i] + dist[i][0]);
+    return ans;
+}
+ 
+// Exemple 2 : Compter le nombre de chemins hamiltoniens dans un DAG
+long long int countHamiltonianPaths(const vector<vector<int>>& graph) {
+    int n = graph.size();
+    vector<vector<long long int>> dp(1 << n, vector<long long int>(n, 0));
+    for (int i = 0; i < n; ++i) dp[1 << i][i] = 1;
+ 
+    for (int mask = 1; mask < (1 << n); ++mask) {
+        for (int u = 0; u < n; ++u) {
+            if (!(mask & (1 << u))) continue;
+            for (int v : graph[u]) {
+                if (mask & (1 << v)) continue;
+                dp[mask | (1 << v)][v] += dp[mask][u];
+            }
+        }
+    }
+ 
+    long long int totalPaths = 0;
+    for (int i = 0; i < n; ++i)
+        totalPaths += dp[(1 << n) - 1][i];
+    return totalPaths;
+}
+ 
+// Exemple 3 : Subset Sum naïf avec bitmask
+bool subsetSumBitmask(const vector<long long int>& nums, long long int target) {
+    int n = nums.size();
+    for (int mask = 0; mask < (1 << n); ++mask) {
+        long long int sum = 0;
+        for (int i = 0; i < n; ++i) {
+            if (mask & (1 << i)) sum += nums[i];
+        }
+        if (sum == target) return true;
+    }
+    return false;
+}
+ 
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+////////////////////// COMPLETE GRAPH UTILITIES //////////////////////
+ 
+// -------------------- DFS Récursif --------------------
+void dfs(int u, const vector<vector<int>>& adj, vector<bool>& visited) {
+    visited[u] = true;
+    for (int v : adj[u]) {
+        if (!visited[v]) dfs(v, adj, visited);
+    }
+}
+ 
+// -------------------- BFS Itératif --------------------
+void bfs(int start, const vector<vector<int>>& adj, vector<bool>& visited) {
+    queue<int> q;
+    q.push(start);
+    visited[start] = true;
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (int v : adj[u]) {
+            if (!visited[v]) {
+                visited[v] = true;
+                q.push(v);
+            }
+        }
+    }
+}
+ 
+// -------------------- Comptage de composantes connexes (non orienté) --------------------
+int countConnectedComponents(const vector<vector<int>>& adj, int n) {
+    vector<bool> visited(n, false);
+    int components = 0;
+    for (int i = 0; i < n; ++i) {
+        if (!visited[i]) {
+            dfs(i, adj, visited);
+            components++;
+        }
+    }
+    return components;
+}
+ 
+// -------------------- Détection de cycle dans graphe non orienté --------------------
+bool dfsCycleUndirected(int u, int parent, const vector<vector<int>>& adj, vector<bool>& visited) {
+    visited[u] = true;
+    for (int v : adj[u]) {
+        if (!visited[v]) {
+            if (dfsCycleUndirected(v, u, adj, visited)) return true;
+        } else if (v != parent) {
+            return true; // cycle détecté
+        }
+    }
+    return false;
+}
+bool hasCycleUndirected(const vector<vector<int>>& adj, int n) {
+    vector<bool> visited(n, false);
+    for (int i = 0; i < n; ++i) {
+        if (!visited[i]) {
+            if (dfsCycleUndirected(i, -1, adj, visited)) return true;
+        }
+    }
+    return false;
+}
+ 
+// -------------------- Détection de cycle dans graphe orienté --------------------
+bool dfsCycleDirected(int u, const vector<vector<int>>& adj, vector<bool>& visited, vector<bool>& recStack) {
+    visited[u] = true;
+    recStack[u] = true;
+    for (int v : adj[u]) {
+        if (!visited[v]) {
+            if (dfsCycleDirected(v, adj, visited, recStack)) return true;
+        } else if (recStack[v]) {
+            return true; // cycle détecté
+        }
+    }
+    recStack[u] = false;
+    return false;
+}
+bool hasCycleDirected(const vector<vector<int>>& adj, int n) {
+    vector<bool> visited(n, false), recStack(n, false);
+    for (int i = 0; i < n; ++i) {
+        if (!visited[i]) {
+            if (dfsCycleDirected(i, adj, visited, recStack)) return true;
+        }
+    }
+    return false;
+}
+ 
+// -------------------- Dijkstra (graphe pondéré, poids positifs) --------------------
+vector<long long int> dijkstra(int start, const vector<vector<pair<int, long long int>>>& adj) {
+    int n = (int)adj.size();
+    const long long int INF = numeric_limits<long long int>::max() / 2;
+    vector<long long int> dist(n, INF);
+    dist[start] = 0;
+    // min-heap : (distance, node)
+    priority_queue<pair<long long int, int>, vector<pair<long long int,int>>, greater<pair<long long int,int>>> pq;
+    pq.push({0, start});
+ 
+    while (!pq.empty()) {
+        pair<long long int,int> top = pq.top(); pq.pop();
+        long long int curDist = top.first;
+        int u = top.second;
+ 
+        if (curDist > dist[u]) continue;
+ 
+        for (const pair<int, long long int>& edge : adj[u]) {
+            int v = edge.first;
+            long long int w = edge.second;
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+    return dist;
+}
+ 
+// -------------------- BFS pour distances minimales (graphe non pondéré) --------------------
+vector<int> bfsDistances(int start, const vector<vector<int>>& adj) {
+    int n = adj.size();
+    vector<int> dist(n, -1);
+    dist[start] = 0;
+    queue<int> q;
+    q.push(start);
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (int v : adj[u]) {
+            if (dist[v] == -1) {
+                dist[v] = dist[u] + 1;
+                q.push(v);
+            }
+        }
+    }
+    return dist;
+}
+ 
+bool isBipartite(const vector<vector<int>>& graph) {
+    int n = (int)graph.size();
+    vector<int> color(n, -1); // -1 = non coloré, 0 et 1 = deux couleurs
+ 
+    for (int start = 0; start < n; start++) {
+        if (color[start] == -1) {
+            queue<int> q;
+            q.push(start);
+            color[start] = 0;
+ 
+            while (!q.empty()) {
+                int u = q.front(); q.pop();
+                for (int v : graph[u]) {
+                    if (color[v] == -1) {
+                        color[v] = 1 - color[u];
+                        q.push(v);
+                    } else if (color[v] == color[u]) {
+                        return false; // deux voisins ont même couleur → pas biparti
+                    }
+                }
+            }
+        }
+    }
+    return true;
+}
+ 
+// -------------------- Topological Sort (Kahn's Algorithm) --------------------
+vector<int> topologicalSort(const vector<vector<int>>& adj) {
+    int n = adj.size();
+    vector<int> indegree(n, 0);
+    for (auto& edges : adj) {
+        for (int v : edges) indegree[v]++;
+    }
+    queue<int> q;
+    for (int i = 0; i < n; ++i)
+        if (indegree[i] == 0) q.push(i);
+ 
+    vector<int> topoOrder;
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        topoOrder.push_back(u);
+        for (int v : adj[u]) {
+            indegree[v]--;
+            if (indegree[v] == 0) q.push(v);
+        }
+    }
+    if ((int)topoOrder.size() != n) topoOrder.clear(); // cycle détecté (pas de topo possible)
+    return topoOrder;
+}
+ 
+////////////////////////////////////////////////////////////////
+////////////////////// MAZE / GRID GRAPH UTILITIES //////////////////////
+ 
+// Directions classiques pour 4-voisins (haut, droite, bas, gauche)
+const int dx[4] = {-1, 0, 1, 0};
+const int dy[4] = {0, 1, 0, -1};
+ 
+// Vérifie si (x,y) est dans la grille n x m
+bool inBounds(int x, int y, int n, int m) {
+    return x >= 0 && x < n && y >= 0 && y < m;
+}
+ 
+// DFS sur une grille à partir de (x,y) - marquer visités
+void dfsGrid(int x, int y, const vector<vector<int>>& grid, vector<vector<bool>>& visited) {
+    int n = (int)grid.size(), m = (int)grid[0].size();
+    visited[x][y] = true;
+    for (int dir = 0; dir < 4; ++dir) {
+        int nx = x + dx[dir], ny = y + dy[dir];
+        if (inBounds(nx, ny, n, m) && !visited[nx][ny] && grid[nx][ny] == 0) {
+            dfsGrid(nx, ny, grid, visited);
+        }
+    }
+}
+ 
+// BFS sur une grille pour distances minimales depuis (startX, startY)
+vector<vector<long long int>> bfsGridDistances(int startX, int startY, const vector<vector<int>>& grid) {
+    int n = (int)grid.size();
+    int m = (int)grid[0].size();
+    vector<vector<long long int>> dist(n, vector<long long int>(m, -1));
+    queue<pair<int,int>> q;
+ 
+    dist[startX][startY] = 0;
+    q.push({startX, startY});
+ 
+    while (!q.empty()) {
+        pair<int,int> cur = q.front();
+        q.pop();
+        int x = cur.first;
+        int y = cur.second;
+ 
+        for (int dir = 0; dir < 4; ++dir) {
+            int nx = x + dx[dir];
+            int ny = y + dy[dir];
+ 
+            if (inBounds(nx, ny, n, m) && grid[nx][ny] == 0 && dist[nx][ny] == -1) {
+                dist[nx][ny] = dist[x][y] + 1;
+                q.push({nx, ny});
+            }
+        }
+    }
+    return dist;
+}
+// Vérifie s'il existe un chemin entre (sx, sy) et (ex, ey)
+bool existsPath(int sx, int sy, int ex, int ey, const vector<vector<int>>& grid) {
+    int n = (int)grid.size(), m = (int)grid[0].size();
+    if (grid[sx][sy] != 0 || grid[ex][ey] != 0) return false;
+ 
+    vector<vector<bool>> visited(n, vector<bool>(m, false));
+    queue<pair<int,int>> q;
+    q.push(make_pair(sx, sy));
+    visited[sx][sy] = true;
+ 
+    while (!q.empty()) {
+        pair<int,int> cur = q.front(); q.pop();
+        int x = cur.first, y = cur.second;
+        if (x == ex && y == ey) return true;
+ 
+        for (int dir = 0; dir < 4; ++dir) {
+            int nx = x + dx[dir], ny = y + dy[dir];
+            if (inBounds(nx, ny, n, m) && !visited[nx][ny] && grid[nx][ny] == 0) {
+                visited[nx][ny] = true;
+                q.push(make_pair(nx, ny));
+            }
+        }
+    }
+    return false;
+}
+ 
+// Retourne le chemin minimal de (sx, sy) à (ex, ey), vide si aucun
+vector<pair<int,int>> shortestPath(int sx, int sy, int ex, int ey, const vector<vector<int>>& grid) {
+    int n = (int)grid.size(), m = (int)grid[0].size();
+    vector<vector<pair<int,int>>> parent(n, vector<pair<int,int>>(m, {-1, -1}));
+    vector<vector<bool>> visited(n, vector<bool>(m, false));
+    queue<pair<int,int>> q;
+ 
+    if (grid[sx][sy] != 0 || grid[ex][ey] != 0) return {}; // départ ou arrivée bloqués
+ 
+    q.push(make_pair(sx, sy));
+    visited[sx][sy] = true;
+ 
+    while (!q.empty()) {
+        pair<int,int> cur = q.front(); q.pop();
+        int x = cur.first, y = cur.second;
+ 
+        if (x == ex && y == ey) break;
+ 
+        for (int dir = 0; dir < 4; ++dir) {
+            int nx = x + dx[dir], ny = y + dy[dir];
+            if (inBounds(nx, ny, n, m) && !visited[nx][ny] && grid[nx][ny] == 0) {
+                visited[nx][ny] = true;
+                parent[nx][ny] = make_pair(x, y);
+                q.push(make_pair(nx, ny));
+            }
+        }
+    }
+ 
+    if (!visited[ex][ey]) return {}; // pas de chemin trouvé
+ 
+    vector<pair<int,int>> path;
+    for (pair<int,int> cur = make_pair(ex, ey); cur.first != -1; cur = parent[cur.first][cur.second]) {
+        path.push_back(cur);
+    }
+    reverse(path.begin(), path.end());
+    return path;
+}
+ 
+////////////////////////////////////////////////////////////////
+/////////////////////// NUMBER THEORY UTILITIES ///////////////////////
+ 
+// PGCD (gcd) - Euclide
+long long int gcd(long long int a, long long int b) {
+    while (b != 0) {
+        long long int t = b;
+        b = a % b;
+        a = t;
+    }
+    return a;
+}
+ 
+// PPCM (lcm) using gcd
+long long int lcm(long long int a, long long int b) {
+    return a / gcd(a, b) * b;
+}
+ 
+// Crible d'Ératosthène (Sieve) - retourne un vecteur de booléens indiquant si i est premier
+vector<bool> sieve(int n) {
+    vector<bool> isPrime(n + 1, true);
+    isPrime[0] = false; isPrime[1] = false;
+    for (long long int i = 2; i * i <= n; i++) {
+        if (isPrime[i]) {
+            for (long long int j = i * i; j <= n; j += i)
+                isPrime[j] = false;
+        }
+    }
+    return isPrime;
+}
+ 
+// Générer tous les nombres premiers jusqu'à n
+vector<long long int> generatePrimes(int n) {
+    vector<bool> isPrime = sieve(n);
+    vector<long long int> primes;
+    for (long long int i = 2; i <= n; i++) {
+        if (isPrime[i]) primes.push_back(i);
+    }
+    return primes;
+}
+ 
+// Factorisation en nombres premiers avec un vecteur de premiers
+vector<pair<long long int, int>> primeFactorization(long long int x, const vector<long long int>& primes) {
+    vector<pair<long long int, int>> factors;
+    for (auto p : primes) {
+        if (p * p > x) break;
+        int count = 0;
+        while (x % p == 0) {
+            x /= p;
+            count++;
+        }
+        if (count > 0) factors.push_back({p, count});
+    }
+    if (x > 1) factors.push_back({x, 1});
+    return factors;
+}
+ 
+// Addition modulaire
+long long int modAdd(long long int a, long long int b, long long int mod) {
+    a %= mod; b %= mod;
+    long long int res = a + b;
+    if (res >= mod) res -= mod;
+    return res;
+}
+ 
+// Multiplication modulaire (évite overflow)
+long long int modMul(long long int a, long long int b, long long int mod) {
+    a %= mod; b %= mod;
+    long long int result = 0;
+    while (b > 0) {
+        if (b & 1) {
+            result = (result + a) % mod;
+        }
+        a = (a + a) % mod;
+        b >>= 1;
+    }
+    return result;
+}
+ 
+// Exponentiation modulaire rapide
+long long int modPow(long long int base, long long int exp, long long int mod) {
+    long long int result = 1 % mod;
+    base %= mod;
+    while (exp > 0) {
+        if (exp & 1) result = modMul(result, base, mod);
+        base = modMul(base, base, mod);
+        exp >>= 1;
+    }
+    return result;
+}
+ 
+// Algorithme d'Euclide étendu
+long long int extendedGCD(long long int a, long long int b, long long int& x, long long int& y) {
+    if (b == 0) {
+        x = 1; y = 0;
+        return a;
+    }
+    long long int x1, y1;
+    long long int d = extendedGCD(b, a % b, x1, y1);
+    x = y1;
+    y = x1 - (a / b) * y1;
+    return d;
+}
+ 
+// Inverse modulaire (si existe), sinon -1
+long long int modInverse(long long int a, long long int m) {
+    long long int x, y;
+    long long int g = extendedGCD(a, m, x, y);
+    if (g != 1) return -1; // pas d'inverse si gcd != 1
+    x %= m;
+    if (x < 0) x += m;
+    return x;
+}
+ 
+////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+//////////// SEGMENT TREE WITH LAZY PROPAGATION //////
+//////////////////////////////////////////////////////
+ 
+ 
+ 
+struct SegmentTree {
+    int n, type;
+    vector<long long> tree, add_lazy, assign_lazy;
+    vector<bool> to_assign;
+ 
+    SegmentTree(int size, int _type) {
+        n = size;
+        type = _type;
+        tree.assign(4 * n, neutral());
+        add_lazy.assign(4 * n, 0);
+        assign_lazy.assign(4 * n, 0);
+        to_assign.assign(4 * n, false);
+    }
+ 
+    long long neutral() {
+        if (type == 1 || type == 5) return 0;
+        if (type == 2) return LLONG_MAX;
+        if (type == 3) return LLONG_MIN;
+        if (type == 4) return 0;
+        return 0;
+    }
+ 
+    long long merge(long long a, long long b) {
+        if (type == 1) return a + b;
+        if (type == 2) return min(a, b);
+        if (type == 3) return max(a, b);
+        if (type == 4) return __gcd(a, b);
+        if (type == 5) return a ^ b;
+        return 0;
+    }
+ 
+    void build(const vector<long long>& a, int node, int l, int r) {
+        if (l == r) {
+            tree[node] = a[l];
+            return;
+        }
+        int mid = (l + r) / 2;
+        build(a, 2 * node, l, mid);
+        build(a, 2 * node + 1, mid + 1, r);
+        tree[node] = merge(tree[2 * node], tree[2 * node + 1]);
+    }
+ 
+    void push(int node, int l, int r) {
+        if (to_assign[node]) {
+            if (type == 1) tree[node] = assign_lazy[node] * (r - l + 1);
+            else tree[node] = assign_lazy[node];
+            if (l != r) {
+                assign_lazy[2 * node] = assign_lazy[2 * node + 1] = assign_lazy[node];
+                to_assign[2 * node] = to_assign[2 * node + 1] = true;
+                add_lazy[2 * node] = add_lazy[2 * node + 1] = 0;
+            }
+            assign_lazy[node] = 0;
+            to_assign[node] = false;
+        }
+ 
+        if (add_lazy[node] != 0) {
+            if (type == 1) tree[node] += add_lazy[node] * (r - l + 1);
+            else if (type == 2 || type == 3 || type == 5 || type == 4) tree[node] += add_lazy[node];
+            if (l != r) {
+                add_lazy[2 * node] += add_lazy[node];
+                add_lazy[2 * node + 1] += add_lazy[node];
+            }
+            add_lazy[node] = 0;
+        }
+    }
+ 
+    void range_add(int node, int l, int r, int ql, int qr, long long val) {
+        push(node, l, r);
+        if (r < ql || l > qr) return;
+        if (ql <= l && r <= qr) {
+            add_lazy[node] += val;
+            push(node, l, r);
+            return;
+        }
+        int mid = (l + r) / 2;
+        range_add(2 * node, l, mid, ql, qr, val);
+        range_add(2 * node + 1, mid + 1, r, ql, qr, val);
+        tree[node] = merge(tree[2 * node], tree[2 * node + 1]);
+    }
+ 
+    void range_assign(int node, int l, int r, int ql, int qr, long long val) {
+        push(node, l, r);
+        if (r < ql || l > qr) return;
+        if (ql <= l && r <= qr) {
+            to_assign[node] = true;
+            assign_lazy[node] = val;
+            add_lazy[node] = 0;
+            push(node, l, r);
+            return;
+        }
+        int mid = (l + r) / 2;
+        range_assign(2 * node, l, mid, ql, qr, val);
+        range_assign(2 * node + 1, mid + 1, r, ql, qr, val);
+        tree[node] = merge(tree[2 * node], tree[2 * node + 1]);
+    }
+ 
+    long long query(int node, int l, int r, int ql, int qr) {
+        push(node, l, r);
+        if (r < ql || l > qr) return neutral();
+        if (ql <= l && r <= qr) return tree[node];
+        int mid = (l + r) / 2;
+        return merge(
+            query(2 * node, l, mid, ql, qr),
+            query(2 * node + 1, mid + 1, r, ql, qr)
+        );
+    }
+ 
+    // Interfaces externes
+    void build(const vector<long long>& a) {
+        build(a, 1, 0, n - 1);
+    }
+ 
+    void update_add(int l, int r, long long val) {
+        range_add(1, 0, n - 1, l, r, val);
+    }
+ 
+    void update_assign(int l, int r, long long val) {
+        range_assign(1, 0, n - 1, l, r, val);
+    }
+ 
+    long long get(int l, int r) {
+        return query(1, 0, n - 1, l, r);
+    }
+};
+ 
+//////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+//////////////////// FENWICK TREE (BIT) ///////////////////////
+ 
+struct FenwickTree {
+    int n;
+    vector<long long int> bit;
+ 
+    FenwickTree(int size) {
+        n = size + 2; // +2 par sécurité (1-indexé)
+        bit.assign(n, 0);
+    }
+ 
+    // Ajouter val à l'index i (1-indexé)
+    void update(int i, long long int val) {
+        while (i < n) {
+            bit[i] += val;
+            i += i & -i;
+        }
+    }
+ 
+    // Somme préfixe de 1 à i (inclus) (1-indexé)
+    long long int query(int i) {
+        long long int res = 0;
+        while (i > 0) {
+            res += bit[i];
+            i -= i & -i;
+        }
+        return res;
+    }
+ 
+    // Somme de [l, r] inclus (1-indexé)
+    long long int rangeQuery(int l, int r) {
+        return query(r) - query(l - 1);
+    }
+ 
+    // Remettre le BIT à 0
+    void reset() {
+        fill(bit.begin(), bit.end(), 0);
+    }
+};
+ 
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+/////////////////// MATRIX EXPONENTIAL ////////////////////////
+ 
+// Calcule F(n) pour la suite F(n) = a*F(n-1) + b*F(n-2)
+// avec F(0) = f0, F(1) = f1, en utilisant la matrice 2x2
+ 
+long long int mod = 1e9 + 7; // adapter si besoin
+ 
+struct Matrix {
+    long long int m[2][2];
+ 
+    Matrix() {
+        m[0][0] = m[0][1] = m[1][0] = m[1][1] = 0;
+    }
+ 
+    Matrix operator*(const Matrix& other) const {
+        Matrix res;
+        for (int i = 0; i < 2; ++i)
+            for (int j = 0; j < 2; ++j)
+                for (int k = 0; k < 2; ++k)
+                    res.m[i][j] = (res.m[i][j] + m[i][k] * other.m[k][j] % mod) % mod;
+        return res;
+    }
+};
+ 
+Matrix matrixPower(Matrix base, long long int exp) {
+    Matrix res;
+    res.m[0][0] = res.m[1][1] = 1; // identité
+    while (exp > 0) {
+        if (exp % 2 == 1) res = res * base;
+        base = base * base;
+        exp /= 2;
+    }
+    return res;
+}
+ 
+// Calcule F(n) pour F(n) = a*F(n-1) + b*F(n-2)
+long long int linearRecurrence(long long int a, long long int b,
+                               long long int f0, long long int f1,
+                               long long int n) {
+    if (n == 0) return f0 % mod;
+    if (n == 1) return f1 % mod;
+ 
+    Matrix trans;
+    trans.m[0][0] = a % mod;
+    trans.m[0][1] = b % mod;
+    trans.m[1][0] = 1;
+    trans.m[1][1] = 0;
+ 
+    Matrix res = matrixPower(trans, n - 1);
+    return (res.m[0][0] * f1 % mod + res.m[0][1] * f0 % mod) % mod;
+}
+ 
+///////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+//////////////////////// COMBINATORICS //////////////////////////
+ 
+const long long int MOD = 1e9 + 7;
+const int MAXN = 1'000'005;
+ 
+long long int fact[MAXN], invFact[MAXN];
+ 
+// Pré-calcul des factorielles et inverses
+void initFactorials() {
+    fact[0] = invFact[0] = 1;
+    for (int i = 1; i < MAXN; ++i)
+        fact[i] = fact[i - 1] * i % MOD;
+    invFact[MAXN - 1] = modInverse(fact[MAXN - 1], MOD);
+    for (int i = MAXN - 2; i >= 1; --i)
+        invFact[i] = invFact[i + 1] * (i + 1) % MOD;
+}
+ 
+// C(n, k) = n! / (k!(n-k)!) mod MOD
+long long int C(int n, int k) {
+    if (k < 0 || k > n) return 0;
+    return fact[n] * invFact[k] % MOD * invFact[n - k] % MOD;
+}
+ 
+// A(n, k) = n! / (n-k)! = nombre d'arrangements
+long long int A(int n, int k) {
+    if (k < 0 || k > n) return 0;
+    return fact[n] * invFact[n - k] % MOD;
+}
+ 
+// P(n) = n! = nombre de permutations
+long long int P(int n) {
+    return fact[n];
+}
+ 
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+////////////////////////// GAME THEORY //////////////////////////
+ 
+/*
+ * nimXOR:
+ * - Problème résolu : Jeu de Nim classique.
+ * - Description : Calcule le XOR de toutes les tailles de piles.
+ * - Utilisation : Si le XOR est non nul, la position est gagnante,
+ *   sinon elle est perdante.
+ */
+long long int nimXOR(const vector<long long int>& piles) {
+    long long int xor_sum = 0;
+    for (auto pile : piles) {
+        xor_sum ^= pile;
+    }
+    return xor_sum;
+}
+ 
+/*
+ * mex (minimum excluded value):
+ * - Problème résolu : Calcul du Grundy number (nimber) dans les jeux combinatoires.
+ * - Description : Renvoie la plus petite valeur entière >= 0 qui n'est pas dans le vecteur states.
+ * - Utilisation : Sert à trouver le Grundy number d'une position donnée.
+ */
+long long int mex(const vector<long long int>& states) {
+    vector<bool> present(states.size() + 2, false);
+    for (auto x : states) {
+        if (x < (long long)present.size())
+            present[x] = true;
+    }
+    for (long long i = 0; ; ++i) {
+        if (!present[i]) return i;
+    }
+}
+ 
+/*
+ * grundySimple:
+ * - Problème résolu : Jeu simple où on peut retirer 1 ou 2 objets à chaque tour.
+ * - Description : Calcule récursivement le Grundy number de n objets restants.
+ * - Utilisation : Permet de déterminer si une position est gagnante (non nulle)
+ *   ou perdante (0) pour ce jeu.
+ * - Attention : version naïve, peut être lente pour grand n (mémoïsation recommandée).
+ */
+long long int grundySimple(long long int n) {
+    if (n == 0) return 0;
+    vector<long long int> next_states;
+    if (n - 1 >= 0) next_states.push_back(grundySimple(n - 1));
+    if (n - 2 >= 0) next_states.push_back(grundySimple(n - 2));
+    return mex(next_states);
+}
+ 
+/*
+ * isWinningPosition:
+ * - Problème résolu : Détermination rapide si une position de Nim est gagnante.
+ * - Description : Utilise nimXOR pour déterminer si la position est gagnante.
+ * - Utilisation : Retourne vrai si la position est gagnante, faux sinon.
+ */
+bool isWinningPosition(const vector<long long int>& piles) {
+    return nimXOR(piles) != 0;
+}
+ 
+////////////////////////////////////////////////////////////////
+ 
+ 
+ 
+int main() {
+    int x;
+    cin>>x;
+    int q;
+    cin>>q;
+    vector<long long int >t(x);
+    for(int i=0;i<x;i++)cin>>t[i];
+ 
+    SegmentTree st(x, 1);
+    st.build(t);
+ 
+    while(q--){
+            int a;
+    cin>>a;
+    if(a==2){
+        //int l,r;
+        //cin>>l>>r;
+        //l--;
+        //r--;
+        //cout<<st.get(l,r)<<endl;
+        int k;
+        cin>>k;k--;
+        cout<<st.get(k,k)<<endl;
+    }
+    else{
+        int l,r;
+        cin>>l>>r;
+        long long int e;
+        cin>>e;
+        l--;r--;
+        st.update_add(l,r,e);
+    }
+ 
+ 
+ 
+            }
+ 
+    return 0;
+}

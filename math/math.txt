@@ -1,0 +1,130 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+/*
+    Solve:
+        a*x^2 + b*x + c = 0
+
+    Returns:
+        (x1, x2)
+        if no integer solution -> (-1, -1)
+*/
+pair<long long, long long> solve_quadratic(long long a, long long b, long long c) {
+
+    // Linear case: b*x + c = 0
+    if (a == 0) {
+        if (b == 0 || (-c) % b != 0)
+            return {-1, -1};
+        return {-c / b, -1};
+    }
+
+    long long delta = b * b - 4 * a * c;
+    if (delta < 0)
+        return {-1, -1};
+
+    long long s = sqrt(delta);
+    if (s * s != delta)
+        return {-1, -1};
+
+    if ((-b + s) % (2 * a) != 0 || (-b - s) % (2 * a) != 0)
+        return {-1, -1};
+
+    long long x1 = (-b + s) / (2 * a);
+    long long x2 = (-b - s) / (2 * a);
+
+    return {x1, x2};
+}
+
+/*
+    Solve system:
+        a1*x + b1*y = c1
+        a2*x + b2*y = c2
+
+    Returns:
+        x, y
+        if no solution -> x = y = -1
+*/
+void solve_linear_system(
+    long long a1, long long b1, long long c1,
+    long long a2, long long b2, long long c2,
+    long long &x, long long &y
+) {
+    long long det = a1 * b2 - a2 * b1;
+
+    if (det == 0) {
+        x = y = -1;
+        return;
+    }
+
+    long long dx = c1 * b2 - c2 * b1;
+    long long dy = a1 * c2 - a2 * c1;
+
+    if (dx % det != 0 || dy % det != 0) {
+        x = y = -1;
+        return;
+    }
+
+    x = dx / det;
+    y = dy / det;
+}
+
+/*
+    Solve:
+        x + y = S
+        x * y = P
+
+    Returns:
+        x, y
+        if no solution -> x = y = -1
+*/
+void solve_sum_product(long long S, long long P, long long &x, long long &y) {
+    long long delta = S * S - 4 * P;
+
+    if (delta < 0) {
+        x = y = -1;
+        return;
+    }
+
+    long long s = sqrt(delta);
+    if (s * s != delta) {
+        x = y = -1;
+        return;
+    }
+
+    if ((S + s) % 2 != 0) {
+        x = y = -1;
+        return;
+    }
+
+    x = (S + s) / 2;
+    y = (S - s) / 2;
+}
+
+/* ===================== MAIN ===================== */
+
+int main() {
+    /*
+    // Example 1: quadratic equation
+    auto q = solve_quadratic(1, -7, 10);
+    cout << q.first << " " << q.second << "\n";   // 5 2
+
+    // Example 2: linear system
+    long long x, y;
+    solve_linear_system(1, 1, 5, 1, -1, 1, x, y);
+    cout << x << " " << y << "\n";                 // 3 2
+
+    // Example 3: sum and product
+    solve_sum_product(7, 10, x, y);
+    cout << x << " " << y << "\n";                 // 5 2
+    
+    */
+     int n;
+    cin>>n;
+    while(n--){
+      long long int a,b;
+     
+    }
+
+    return 0;
+}
+

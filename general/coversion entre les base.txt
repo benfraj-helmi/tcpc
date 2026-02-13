@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+// ===== CONVERSION BASE 10 -> BASE b (2<=b<=36) =====
+string decToBase(long long n, int b) {
+    if(n==0) return "0";
+    string digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    string res = "";
+    while(n>0) {
+        res = digits[n%b] + res;
+        n /= b;
+    }
+    return res;
+}
+
+// ===== CONVERSION BASE b -> BASE 10 =====
+long long baseToDec(string s, int b) {
+    long long res = 0;
+    for(char c : s) {
+        int val;
+        if(isdigit(c)) val = c - '0';
+        else val = toupper(c) - 'A' + 10;
+        res = res*b + val;
+    }
+    return res;
+}
+
+// ===== CONVERSION BASE A -> BASE B =====
+string convertBase(string s, int A, int B) {
+    long long dec = baseToDec(s,A);
+    return decToBase(dec,B);
+}
+
+// ===== CONVERSION RAPIDE POUR BASES CLASSIQUES =====
+void demoClassiques() {
+    int n = 255;
+
+    cout << "Decimal: " << n << "\n";
+    cout << "Binary: " << bitset<16>(n) << "\n"; // binaire 16 bits
+    cout << "Octal: " << oct << n << dec << "\n"; // octal
+    cout << "Hex: " << hex << n << dec << "\n";   // hexadécimal
+}
+
+// ===== MAIN EXEMPLE =====
+int main() {
+    long long n = 12345;
+    cout << "Decimal " << n << " to binary: " << decToBase(n,2) << "\n";
+    cout << "Decimal " << n << " to octal: " << decToBase(n,8) << "\n";
+    cout << "Decimal " << n << " to hex: " << decToBase(n,16) << "\n";
+
+    string s = "3039"; // en base 16
+    cout << "Hex " << s << " to decimal: " << baseToDec(s,16) << "\n";
+
+    string s2 = "111101000001"; // base 2
+    cout << "Binary " << s2 << " to decimal: " << baseToDec(s2,2) << "\n";
+
+    string s3 = "1234"; // base 5
+    cout << "Base 5: " << s3 << " to decimal: " << baseToDec(s3,5) << "\n";
+    cout << "Decimal " << baseToDec(s3,5) << " to base 7: " << decToBase(baseToDec(s3,5),7) << "\n";
+
+    demoClassiques();
+
+    return 0;
+}
