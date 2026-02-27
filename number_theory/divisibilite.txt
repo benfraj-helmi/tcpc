@@ -1,0 +1,77 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+/* --------- Divisibilité simple --------- */
+
+// divisible by 2 → dernier chiffre pair
+bool div2(const string &s) {
+    return (s.back() - '0') % 2 == 0;
+}
+
+// divisible by 3 → somme des chiffres divisible par 3
+bool div3(const string &s) {
+    int sum = 0;
+    for (char c : s) sum += c - '0';
+    return sum % 3 == 0;
+}
+
+// divisible by 4 → deux derniers chiffres
+bool div4(const string &s) {
+    if (s.size() == 1) return (s[0] - '0') % 4 == 0;
+    int last2 = (s[s.size()-2]-'0')*10 + (s[s.size()-1]-'0');
+    return last2 % 4 == 0;
+}
+
+// divisible by 5 → dernier chiffre 0 ou 5
+bool div5(const string &s) {
+    char c = s.back();
+    return c == '0' || c == '5';
+}
+
+// divisible by 9 → somme des chiffres
+bool div9(const string &s) {
+    int sum = 0;
+    for (char c : s) sum += c - '0';
+    return sum % 9 == 0;
+}
+
+// divisible by 11 → alternance somme
+bool div11(const string &s) {
+    int odd = 0, even = 0;
+    for (int i = 0; i < (int)s.size(); i++) {
+        if (i % 2) even += s[i] - '0';
+        else odd += s[i] - '0';
+    }
+    return abs(odd - even) % 11 == 0;
+}
+
+/* --------- Méthode générale --------- */
+// marche pour n'importe quel entier d
+bool divisibleBy(const string &s, long long d) {
+    long long mod = 0;
+    for (char c : s) {
+        mod = (mod * 10 + (c - '0')) % d;
+    }
+    return mod == 0;
+}
+
+/* --------- Main test --------- */
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    string s;
+    cin >> s;
+
+    cout << "Divisible by 2: " << (div2(s) ? "YES" : "NO") << "\n";
+    cout << "Divisible by 3: " << (div3(s) ? "YES" : "NO") << "\n";
+    cout << "Divisible by 4: " << (div4(s) ? "YES" : "NO") << "\n";
+    cout << "Divisible by 5: " << (div5(s) ? "YES" : "NO") << "\n";
+    cout << "Divisible by 7: " << (divisibleBy(s, 7) ? "YES" : "NO") << "\n";
+    cout << "Divisible by 9: " << (div9(s) ? "YES" : "NO") << "\n";
+    cout << "Divisible by 11: " << (div11(s) ? "YES" : "NO") << "\n";
+    cout << "Divisible by 13: " << (divisibleBy(s, 13) ? "YES" : "NO") << "\n";
+
+    return 0;
+}
