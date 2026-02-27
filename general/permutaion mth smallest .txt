@@ -1,0 +1,31 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    long long n, m;
+    cin >> n >> m;
+
+    m--; // 0-based
+
+    vector<long long> fact(n + 1, 1);
+    for (int i = 1; i <= n; i++)
+        fact[i] = fact[i - 1] * i;
+
+    vector<int> nums;
+    for (int i = 1; i <= n; i++)
+        nums.push_back(i);
+
+    for (int i = n; i >= 1; i--) {
+        long long block = fact[i - 1];
+        long long index = m / block;
+        m %= block;
+
+        cout << nums[index] << " ";
+        nums.erase(nums.begin() + index);
+    }
+
+    return 0;
+}

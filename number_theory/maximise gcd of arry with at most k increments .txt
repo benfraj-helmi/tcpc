@@ -1,0 +1,53 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+long long freq[1000005];
+long long pref[1000005];
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    long long n, k;
+    cin >> n >> k;
+
+    vector<long long> a(n);
+    long long mx = 0, S = 0;
+
+    for(int i = 0; i < n; i++){
+        cin >> a[i];
+        freq[a[i]]++;
+        pref[a[i]] += a[i];
+        S += a[i];
+        mx = max(mx, a[i]);
+    }
+
+    for(int i = 1; i <= mx; i++){
+        freq[i] += freq[i-1];
+        pref[i] += pref[i-1];
+    }
+
+    auto needed = [&](long long g){
+        long long cost = 0;
+        for(long long cur = g, last = 0; cur <= mx; cur += g){
+            long long f = freq[cur] - freq[last];
+            long long s = pref[cur] - pref[last];
+            cost += cur * f - s;
+            last = cur;
+        }
+        return cost;
+    };
+
+    long long ans = 1;
+
+    for(long long g = 1; g <= mx; g++){
+        if(needed(g) <= k)
+            ans = g;
+    }
+
+    long long extra = (S + k) / n;
+    if(extra >= mx)
+        ans = max(ans, extra);
+
+    cout << ans << "\n";
+}

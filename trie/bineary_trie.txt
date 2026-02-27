@@ -3,23 +3,54 @@ using namespace std;
 
 struct Node {
     Node* child[2];
+    int cnt; // combien de nombres passent par ce noeud
+
     Node() {
         child[0] = child[1] = nullptr;
+        cnt = 0;
     }
 };
 
 struct BinaryTrie {
     Node* root;
-    BinaryTrie() { root = new Node(); }
+
+    BinaryTrie() { 
+        root = new Node(); 
+    }
 
     // Ajouter un nombre
     void insert(int num) {
         Node* node = root;
-        for(int i=31;i>=0;i--) {
+        for(int i = 31; i >= 0; i--) {
             int bit = (num >> i) & 1;
+
             if(!node->child[bit])
                 node->child[bit] = new Node();
+
             node = node->child[bit];
+            node->cnt++;
+        }
+    }
+
+    // Supprimer une occurrence
+    void removeoneocc(int num) {
+        Node* node = root;
+        for(int i = 31; i >= 0; i--) {
+            int bit = (num >> i) & 1;
+            Node* next = node->child[bit];
+
+            if(!next) return; // sécurité
+
+            next->cnt--;
+
+            // Si plus aucun nombre ne passe ici → supprimer
+            if(next->cnt == 0) {
+                delete next;
+                node->child[bit] = nullptr;
+                return;
+            }
+
+            node = next;
         }
     }
 
@@ -27,25 +58,45 @@ struct BinaryTrie {
     int maxXOR(int num) {
         Node* node = root;
         int res = 0;
-        for(int i=31;i>=0;i--) {
+
+        for(int i = 31; i >= 0; i--) {
             int bit = (num >> i) & 1;
-            int preferred = 1 - bit; // essayer de choisir le bit opposé pour max XOR
+            int preferred = 1 - bit;
+
             if(node->child[preferred]) {
                 res |= (1 << i);
                 node = node->child[preferred];
-            } else {
+            } else if(node->child[bit]) {
                 node = node->child[bit];
             }
         }
+
         return res;
     }
 };
 
 int main() {
-    BinaryTrie trie;
-    vector<int> arr = {3, 10, 5, 25, 2, 8};
-    for(int x : arr) trie.insert(x);
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
 
-    cout << trie.maxXOR(5) << "\n"; // 28 car 5^25 = 28
-    cout << trie.maxXOR(10) << "\n"; // 31 car 10^21 = 31
+    BinaryTrie trie;
+
+    int n;
+    cin >> n;
+
+    while(n--) {
+        char e;
+        int x;
+        cin >> e >> x;
+
+        if(e == '+') {
+            trie.insert(x);
+        }
+        else if(e == '-') {
+            trie.removeoneocc(x);
+        }
+        else { // '?'
+            cout << trie.maxXOR(x) << "\n";
+        }
+    }
 }

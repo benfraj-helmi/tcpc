@@ -1,0 +1,45 @@
+#include <iostream>
+#include <numeric>
+#include <vector>
+
+typedef long long ll;
+
+// Function to calculate Euler's totient function phi(n)
+ll phi(ll n) {
+    ll result = n;
+    for (ll i = 2; i * i <= n; i++) {
+        if (n % i == 0) {
+            while (n % i == 0)
+                n /= i;
+            result -= result / i;
+        }
+    }
+    if (n > 1)
+        result -= result / n;
+    return result;
+}
+
+// Function to calculate GCD
+ll gcd(ll a, ll b) {
+    while (b) {
+        a %= b;
+        std::swap(a, b);
+    }
+    return a;
+}
+
+void solve() {
+    ll a, m;
+    if (!(std::cin >> a >> m)) return;
+    // The answer is phi(m / gcd(a, m))
+    std::cout << phi(m / gcd(a, m)) << "\n";
+}
+
+int main() {
+    int t;
+    std::cin >> t;
+    while (t--) {
+        solve();
+    }
+    return 0;
+}
